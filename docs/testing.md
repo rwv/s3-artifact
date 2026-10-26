@@ -9,4 +9,4 @@ Tests are intentionally local. No GitHub Secrets, live cloud resources, workflow
 
 Local RustFS validates the shared protocol behavior. It does not establish provider-specific AWS/R2 compatibility, GitHub backend behavior, or throughput from Ubicloud. Those remain explicit release limitations rather than simulated claims.
 
-Routine CI uses Linux/Node 24 only. Add a platform matrix when a concrete platform-specific requirement warrants it. Retry transport operations within the SDK; do not blanket-retry failed tests.
+Routine CI uses Node 24 on Linux, Windows, and macOS for unit tests and bundle reproducibility. RustFS integration, static checks, and workflow validation run once on Linux. Retry transport operations within the SDK; do not blanket-retry failed tests.

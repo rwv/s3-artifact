@@ -155333,16 +155333,20 @@ async function run() {
   if (!archive && files.length !== 1) throw new Error("archive: false requires exactly one file.");
   const name = archive ? getInput("name") || "artifact" : path10.basename(files[0]);
   validateName(name);
+  const mode = getInput("storage") || "auto";
+  if (!["auto", "github", "s3"].includes(mode))
+    throw new Error("storage must be auto, github, or s3.");
+  const config = mode === "github" ? void 0 : storageConfig();
+  const fallback2 = booleanInput("fallback", true);
+  if (mode === "s3" && !config) throw new Error("storage: s3 requires a configured bucket.");
+  if (!config && !fallback2 && mode !== "github")
+    throw new Error("External storage is not configured and fallback is disabled.");
   const overwrite = booleanInput("overwrite", false);
   const { artifacts: existing } = await artifact_default.listArtifacts({ latest: true });
   const conflicts = existing.filter((a5) => logicalName(a5.name) === name);
   if (conflicts.length && !overwrite)
     throw new Error(`Artifact '${name}' already exists. Use overwrite: true or a unique name.`);
   if (overwrite) for (const conflict of conflicts) await artifact_default.deleteArtifact(conflict.name);
-  const config = storageConfig();
-  const fallback2 = booleanInput("fallback", true);
-  if (!config && !fallback2)
-    throw new Error("External storage is not configured and fallback is disabled.");
   const options = { retentionDays: days, compressionLevel, skipArchive: !archive };
   async function nativeUpload() {
     const result = await artifact_default.uploadArtifact(name, files, root5, options);
@@ -155361,7 +155365,9 @@ async function run() {
     );
   }
   if (!config) {
-    info("No external bucket configured; using GitHub artifact storage.");
+    info(
+      mode === "github" ? "GitHub artifact storage explicitly selected; skipping external storage." : "No external bucket configured; using GitHub artifact storage."
+    );
     await nativeUpload();
     return;
   }

@@ -169,3 +169,20 @@ it("does not report success for a corrupt external payload", async () => {
   mocks.inputs = { name: "build", path: path.join(directory, "out"), "s3-bucket": "ci" };
   await expect(download()).rejects.toThrow("SHA-256 mismatch");
 });
+
+it("explicit GitHub storage skips even invalid external configuration", async () => {
+  uploadInputs();
+  mocks.inputs.storage = "github";
+  mocks.inputs["s3-prefix"] = "../invalid";
+  mocks.inputs.fallback = "false";
+  await upload();
+  expect(mocks.put).not.toHaveBeenCalled();
+  expect(mocks.outputs["storage-backend"]).toBe("github");
+  expect(artifacts[0]?.name).toBe("build");
+});
+it("explicit S3 selection requires a configured bucket", async () => {
+  uploadInputs(false);
+  mocks.inputs.storage = "s3";
+  await expect(upload()).rejects.toThrow("requires a configured bucket");
+  expect(mocks.upload).not.toHaveBeenCalled();
+});

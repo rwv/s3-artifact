@@ -2,6 +2,9 @@ name: "S3 Artifact Upload"
 description: "Upload artifacts to S3/R2 with GitHub manifest discovery and native fallback."
 author: rwv
 inputs:
+  storage:
+    description: "Storage selection: auto, github (skip external storage), or s3 (require a bucket)."
+    default: auto
   name:
     description: "Logical artifact name."
     default: "artifact"

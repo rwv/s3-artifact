@@ -47,6 +47,10 @@ it("rejects traversal and writing through an existing symlink", async () => {
   const dir = await fixture();
   await expect(safeDestination(dir, "../escape")).rejects.toThrow("Unsafe");
   await expect(safeDestination(dir, "C:\\escape")).rejects.toThrow("Unsafe");
-  await symlink(tmpdir(), path.join(dir, "link"));
+  await symlink(
+    tmpdir(),
+    path.join(dir, "link"),
+    process.platform === "win32" ? "junction" : "dir",
+  );
   await expect(safeDestination(dir, "link/escape")).rejects.toThrow("symbolic link");
 });

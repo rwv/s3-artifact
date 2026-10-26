@@ -2,7 +2,10 @@ import { execFileSync } from "node:child_process";
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 const licenses = JSON.parse(
-  execFileSync("pnpm", ["licenses", "list", "--prod", "--json"], { encoding: "utf8" }),
+  execFileSync("pnpm", ["licenses", "list", "--prod", "--json"], {
+    encoding: "utf8",
+    shell: process.platform === "win32",
+  }),
 );
 const packages = Object.values(licenses)
   .flat()

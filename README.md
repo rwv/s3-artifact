@@ -85,17 +85,18 @@ The GitHub UI and official download action download the **manifest**, not the ex
 
 ## Upload inputs
 
-| Input                  | Default    | Behavior                                                                       |
-| ---------------------- | ---------- | ------------------------------------------------------------------------------ |
-| `name`                 | `artifact` | Logical name; `.s3-artifact` is a reserved suffix.                             |
-| `path`                 | Required   | File, directory, or multiline glob patterns; `!` exclusions supported.         |
-| `if-no-files-found`    | `warn`     | `warn`, `error`, or `ignore`.                                                  |
-| `retention-days`       | `0`        | `0` means 30 days. Supports 1–90, capped by repository retention.              |
-| `compression-level`    | `6`        | ZIP compression from 0–9. Use 0 for already-compressed payloads.               |
-| `overwrite`            | `false`    | Delete matching logical artifacts before uploading.                            |
-| `include-hidden-files` | `false`    | Include hidden files when enabled.                                             |
-| `archive`              | `true`     | If false, requires a single file and uses its basename as the logical name.    |
-| `fallback`             | `true`     | Use native GitHub storage if no bucket is configured or external upload fails. |
+| Input                  | Default    | Behavior                                                                                    |
+| ---------------------- | ---------- | ------------------------------------------------------------------------------------------- |
+| `name`                 | `artifact` | Logical name; `.s3-artifact` is a reserved suffix.                                          |
+| `path`                 | Required   | File, directory, or multiline glob patterns; `!` exclusions supported.                      |
+| `if-no-files-found`    | `warn`     | `warn`, `error`, or `ignore`.                                                               |
+| `retention-days`       | `0`        | `0` means 30 days. Supports 1–90, capped by repository retention.                           |
+| `compression-level`    | `6`        | ZIP compression from 0–9. Use 0 for already-compressed payloads.                            |
+| `overwrite`            | `false`    | Delete matching logical artifacts before uploading.                                         |
+| `include-hidden-files` | `false`    | Include hidden files when enabled.                                                          |
+| `archive`              | `true`     | If false, requires a single file and uses its basename as the logical name.                 |
+| `storage`              | `auto`     | `auto`: use a configured bucket; `github`: bypass external storage; `s3`: require a bucket. |
+| `fallback`             | `true`     | Use native GitHub storage if no bucket is configured or external upload fails.              |
 
 ## Download inputs
 
@@ -123,6 +124,18 @@ The GitHub UI and official download action download the **manifest**, not the ex
 | `s3-force-path-style` | `false`; useful for local S3 services             |
 
 Inputs take precedence over environment variables. Configure the same bucket, prefix, and endpoint on upload and download. Reading an external manifest without external storage configuration is an error; it cannot restore a payload that was never backed up to GitHub.
+
+To bypass external storage for one upload even when bucket variables are set:
+
+```yaml
+- uses: rwv/s3-artifact/upload@v0.1.0
+  with:
+    name: build
+    path: dist/
+    storage: github
+```
+
+`storage: github` does not read external configuration or contact S3/R2. `storage: s3` requires a bucket; `fallback` still controls recovery from transfer failures. Use `storage: s3` with `fallback: false` to require an external upload to succeed. Download chooses the backend from the selected artifact automatically.
 
 ## Outputs
 

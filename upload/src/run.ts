@@ -44,16 +44,20 @@ export async function run(): Promise<void> {
   if (!archive && files.length !== 1) throw new Error("archive: false requires exactly one file.");
   const name = archive ? core.getInput("name") || "artifact" : path.basename(files[0]!);
   validateName(name);
+  const mode = core.getInput("storage") || "auto";
+  if (!["auto", "github", "s3"].includes(mode))
+    throw new Error("storage must be auto, github, or s3.");
+  const config = mode === "github" ? undefined : storageConfig();
+  const fallback = booleanInput("fallback", true);
+  if (mode === "s3" && !config) throw new Error("storage: s3 requires a configured bucket.");
+  if (!config && !fallback && mode !== "github")
+    throw new Error("External storage is not configured and fallback is disabled.");
   const overwrite = booleanInput("overwrite", false);
   const { artifacts: existing } = await artifact.listArtifacts({ latest: true });
   const conflicts = existing.filter((a) => logicalName(a.name) === name);
   if (conflicts.length && !overwrite)
     throw new Error(`Artifact '${name}' already exists. Use overwrite: true or a unique name.`);
   if (overwrite) for (const conflict of conflicts) await artifact.deleteArtifact(conflict.name);
-  const config = storageConfig();
-  const fallback = booleanInput("fallback", true);
-  if (!config && !fallback)
-    throw new Error("External storage is not configured and fallback is disabled.");
   const options = { retentionDays: days, compressionLevel, skipArchive: !archive };
   async function nativeUpload(): Promise<void> {
     const result = await artifact.uploadArtifact(name, files, root, options);
@@ -72,7 +76,11 @@ export async function run(): Promise<void> {
     );
   }
   if (!config) {
-    core.info("No external bucket configured; using GitHub artifact storage.");
+    core.info(
+      mode === "github"
+        ? "GitHub artifact storage explicitly selected; skipping external storage."
+        : "No external bucket configured; using GitHub artifact storage.",
+    );
     await nativeUpload();
     return;
   }
