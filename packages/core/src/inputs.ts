@@ -8,16 +8,25 @@ export function booleanInput(name: string, defaultValue: boolean): boolean {
   return core.getInput(name) ? core.getBooleanInput(name) : defaultValue;
 }
 export function storageConfig(): StorageConfig | undefined {
-  const bucket = core.getInput("s3-bucket") || process.env.S3_ARTIFACT_BUCKET;
+  const bucket = core.getInput("s3-bucket");
   if (!bucket) return undefined;
-  const endpoint = core.getInput("s3-endpoint") || process.env.S3_ARTIFACT_ENDPOINT;
-  const prefix = storagePrefix(
-    core.getInput("s3-prefix") || process.env.S3_ARTIFACT_PREFIX || "s3-artifacts",
-  );
+  const endpoint = core.getInput("s3-endpoint");
+  const prefix = storagePrefix(core.getInput("s3-prefix") || "s3-artifacts");
+  const accessKeyId = core.getInput("s3-access-key-id");
+  const secretAccessKey = core.getInput("s3-secret-access-key");
+  const sessionToken = core.getInput("s3-session-token");
+  for (const value of [accessKeyId, secretAccessKey, sessionToken]) {
+    if (value) core.setSecret(value);
+  }
+  if (!accessKeyId || !secretAccessKey)
+    throw new Error(
+      "A configured s3-bucket requires s3-access-key-id and s3-secret-access-key inputs.",
+    );
   return {
+    credentials: { accessKeyId, secretAccessKey, ...(sessionToken ? { sessionToken } : {}) },
     bucket,
     prefix,
-    region: core.getInput("s3-region") || process.env.AWS_REGION || "auto",
+    region: core.getInput("s3-region") || "auto",
     forcePathStyle: booleanInput("s3-force-path-style", false),
     ...(endpoint ? { endpoint } : {}),
   };

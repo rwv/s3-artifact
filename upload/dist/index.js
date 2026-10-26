@@ -155263,6 +155263,8 @@ var import_node_http_handler5 = __toESM(require_dist_cjs7(), 1);
 function createStorage(config) {
   return new import_client_s3.S3Client({
     region: config.region,
+    credentials: config.credentials,
+    ignoreConfiguredEndpointUrls: true,
     ...config.endpoint ? { endpoint: config.endpoint } : {},
     forcePathStyle: config.forcePathStyle,
     maxAttempts: 3,
@@ -155295,16 +155297,25 @@ function booleanInput(name, defaultValue) {
   return getInput(name) ? getBooleanInput(name) : defaultValue;
 }
 function storageConfig() {
-  const bucket = getInput("s3-bucket") || process.env.S3_ARTIFACT_BUCKET;
+  const bucket = getInput("s3-bucket");
   if (!bucket) return void 0;
-  const endpoint2 = getInput("s3-endpoint") || process.env.S3_ARTIFACT_ENDPOINT;
-  const prefix2 = storagePrefix(
-    getInput("s3-prefix") || process.env.S3_ARTIFACT_PREFIX || "s3-artifacts"
-  );
+  const endpoint2 = getInput("s3-endpoint");
+  const prefix2 = storagePrefix(getInput("s3-prefix") || "s3-artifacts");
+  const accessKeyId = getInput("s3-access-key-id");
+  const secretAccessKey = getInput("s3-secret-access-key");
+  const sessionToken = getInput("s3-session-token");
+  for (const value of [accessKeyId, secretAccessKey, sessionToken]) {
+    if (value) setSecret(value);
+  }
+  if (!accessKeyId || !secretAccessKey)
+    throw new Error(
+      "A configured s3-bucket requires s3-access-key-id and s3-secret-access-key inputs."
+    );
   return {
+    credentials: { accessKeyId, secretAccessKey, ...sessionToken ? { sessionToken } : {} },
     bucket,
     prefix: prefix2,
-    region: getInput("s3-region") || process.env.AWS_REGION || "auto",
+    region: getInput("s3-region") || "auto",
     forcePathStyle: booleanInput("s3-force-path-style", false),
     ...endpoint2 ? { endpoint: endpoint2 } : {}
   };

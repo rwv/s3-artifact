@@ -12,3 +12,5 @@ Local RustFS validates the shared protocol behavior. It does not establish provi
 Routine CI uses Node 24 on Linux, Windows, and macOS for unit tests and bundle reproducibility. RustFS integration, static checks, and workflow validation run once on Linux. Retry transport operations within the SDK; do not blanket-retry failed tests.
 
 Direct handoff tests cover both backends and upload fallback, zero discovery calls, no external pointer download, invalid/conflicting input, expiry, storage scope, size, and digest failures.
+
+Storage input tests exercise ambient configuration isolation, required credentials, secret masking, temporary credentials, and the actual SDK endpoint resolver without network calls. RustFS multipart tests use explicit client credentials.

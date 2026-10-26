@@ -21,6 +21,7 @@ import { digestFile } from "../packages/core/src/files.ts";
 const endpoint = process.env.LOCAL_S3_ENDPOINT;
 if (!endpoint) throw new Error("Use pnpm test:storage to start the local test service.");
 const client = createStorage({
+  credentials: { accessKeyId: "rustfsadmin", secretAccessKey: "rustfsadmin" },
   bucket: "artifact-test",
   prefix: "s3-artifacts",
   region: "us-east-1",
