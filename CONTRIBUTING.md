@@ -1,10 +1,10 @@
 # Contributing
 
-Use English for code, comments, logs, documentation, issues, pull requests, and release notes. Keep changes focused and describe user-visible behavior and validation.
+Use English and keep changes focused on user-visible behavior.
 
-## Local workflow
+## Local development
 
-Use Node 24 and the pnpm version pinned in package.json. Docker is needed for local storage tests.
+Use Node 24, the pinned pnpm version, and Docker for storage tests.
 
 ```sh
 pnpm install --frozen-lockfile
@@ -13,24 +13,20 @@ pnpm test
 pnpm build
 ```
 
-Commit updated `upload/dist` and `download/dist` with source changes. Then `pnpm check` must pass without modifying generated files. Generated bundles are excluded from formatting/linting, but their reproducibility is checked.
-
-Use Oxlint, Oxfmt, TypeScript, Knip, and Vitest. Do not add competing lint, formatting, or test frameworks. Add tests for behavior changes and regressions, not assertions that merely mirror implementation.
+Commit regenerated `upload/dist` and `download/dist` with source changes, then run `pnpm check`. The gate uses Oxlint, Oxfmt, TypeScript, Knip, Vitest, and local RustFS. Add regression tests for changed behavior.
 
 ## Pull requests
 
-PR titles follow Conventional Commits, for example:
+Titles follow Conventional Commits: `fix: retry downloads`, `feat(upload): add an option`, or `feat(storage)!: change inputs`. We use the official commitlint conventional configuration in `commitlint.config.js`; CI validates PR titles. Check your latest commit locally with:
 
-- `feat(upload): add a storage option`
-- `fix(download): preserve explicit artifact selection`
-- `docs: clarify retention behavior`
+```sh
+pnpm commitlint --last
+```
 
-Types: feat, fix, perf, refactor, test, docs, build, ci, chore, style, revert. Scope is optional. Use `!` or a BREAKING CHANGE footer for incompatible changes. Intermediate branch commits need not follow this format; the squash commit must.
-
-Only squash merging is enabled. Main requires PRs, successful quality/title gates, resolved conversations, and linear history. Single-maintainer development does not require an approval from a second person. Do not edit the squash title into a nonconforming message.
+Only squash merging is enabled. Main requires passing quality/title gates and resolved review conversations. The PR title becomes the squash commit subject.
 
 ## Releases
 
-The repository has one version for both actions. Internal workspace packages are private. Prepare a version/changelog PR, regenerate bundles, merge with passing gates, then dispatch the Release workflow from main. The workflow reruns the complete local gate on the exact commit before creating a release.
+Both actions share one version. Update package.json and CHANGELOG.md, regenerate bundles, merge with passing gates, then dispatch the Release workflow from main.
 
-Exact version tags are never moved. The `v0` (later `v1`) convenience tag follows successful releases; pin an exact version or SHA for reproducibility. Initial 0.x releases are marked prereleases. Manifest schema changes require explicit compatibility planning independently of package versioning.
+Exact version tags stay fixed. The `v0` alias follows new releases; pin an exact version or SHA for reproducibility. Versions 0.x are prereleases. Version manifest schemas separately when their format changes.

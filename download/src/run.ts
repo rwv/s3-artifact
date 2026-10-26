@@ -72,7 +72,7 @@ export async function run(): Promise<void> {
   const merge = booleanInput("merge-multiple", false);
   const skip = booleanInput("skip-decompress", false);
   const single = Boolean(direct) || Boolean(name) || ids?.length === 1;
-  const config = direct?.kind === "github-artifact" ? undefined : storageConfig();
+  const config = selected.some((item) => item.name.endsWith(SUFFIX)) ? storageConfig() : undefined;
   const client = config ? createStorage(config) : undefined;
   const temporary = await mkdtemp(path.join(tmpdir(), "s3-artifact-download-"));
   try {

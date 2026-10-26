@@ -1,10 +1,11 @@
 {
   "name": "s3-artifact",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "commitlint": "commitlint",
     "build": "node scripts/build.mjs",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
@@ -31,8 +32,10 @@
     "unzipper": "^0.12.5"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.4",
     "@commitlint/config-conventional": "^21.2.4",
     "@commitlint/lint": "^21.2.4",
+    "@commitlint/load": "^21.2.4",
     "@types/archiver": "^8.0.0",
     "@types/node": "^26.6.5",
     "@types/unzipper": "^0.10.11",

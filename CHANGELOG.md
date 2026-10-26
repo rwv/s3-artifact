@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.1
+
+- Ignore S3 configuration when downloading only native GitHub artifacts.
+- Retry interrupted download streams up to twice, restarting the file each time.
+- Load the official commitlint parser preset so breaking-change titles such as `feat!:` are accepted; add a local commitlint command.
+- Simplify documentation and provide a complete R2 manifest-handoff example.
+
 ## 0.3.0
 
 - Configure all action storage settings through `with`, including new `s3-access-key-id`, `s3-secret-access-key`, and optional `s3-session-token` inputs.

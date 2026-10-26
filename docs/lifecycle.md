@@ -21,7 +21,7 @@ pnpm lifecycle check --bucket my-artifacts \
   --endpoint https://ACCOUNT_ID.r2.cloudflarestorage.com
 ```
 
-For AWS, omit `--endpoint` and specify `--region`. The CLI uses the standard AWS SDK credential chain. It never prints credentials. `--prefix` must match the runtime's `s3-prefix`/`S3_ARTIFACT_PREFIX` (default `s3-artifacts`).
+For AWS, omit `--endpoint` and specify `--region`. The CLI uses the standard AWS SDK credential chain. It never prints credentials. `--prefix` must match the actions' `s3-prefix` (default `s3-artifacts`).
 
 `apply` requires a new backup path, preserves unrelated rules, and replaces only managed rule IDs for that prefix. Do not run multiple setup processes concurrently. `check` verifies managed rule definitions; it does not prove that unrelated overlapping rules cannot expire objects earlier. Review existing whole-bucket expiration rules before applying.
 
