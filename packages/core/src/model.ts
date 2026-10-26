@@ -112,3 +112,27 @@ export function parseManifest(value: unknown, name: string): Manifest {
     throw new Error("Unsafe payload filename.");
   return m as unknown as Manifest;
 }
+
+export interface NativeManifest {
+  kind: "github-artifact";
+  schemaVersion: 1;
+  name: string;
+  artifactId: number;
+  sha256?: string;
+}
+export function parseHandoff(value: unknown): Manifest | NativeManifest {
+  if (!value || typeof value !== "object") throw new Error("Invalid artifact manifest.");
+  const m = value as Record<string, unknown>;
+  if (m.kind === "s3-artifact") return parseManifest(value, String(m.name));
+  if (
+    m.kind !== "github-artifact" ||
+    m.schemaVersion !== 1 ||
+    typeof m.name !== "string" ||
+    !Number.isSafeInteger(m.artifactId) ||
+    Number(m.artifactId) <= 0 ||
+    (m.sha256 !== undefined && (typeof m.sha256 !== "string" || !/^[a-f0-9]{64}$/u.test(m.sha256)))
+  )
+    throw new Error("Invalid or unsupported artifact manifest.");
+  validateName(m.name);
+  return m as unknown as NativeManifest;
+}

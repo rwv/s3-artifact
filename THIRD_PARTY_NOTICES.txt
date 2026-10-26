@@ -10024,7 +10024,7 @@ SOFTWARE.
 
 ------------------------------------------------------------
 
-glob (10.4.5)
+glob (10.5.0)
 License: ISC
 https://github.com/isaacs/node-glob#readme
 

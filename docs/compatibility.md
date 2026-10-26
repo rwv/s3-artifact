@@ -43,3 +43,13 @@ Manifests have a `kind` marker and `schemaVersion`. Credentials and endpoints ar
 The actions run on Node 24-capable GitHub Actions runners. Unit tests and bundle reproducibility are checked on Linux, Windows, and macOS. The Docker-based storage integration suite runs on Linux only. GitHub Enterprise Server is not supported in v0.1.0. Storage transport uses the shared S3 API subset, without AWS object tagging, ACLs, KMS parameters, or bucket-policy management.
 
 There is no client-side encryption. Use HTTPS, private buckets, provider-native encryption, and appropriately scoped credentials. AWS static and temporary credentials are supported through the SDK provider chain, including session tokens supplied by an earlier OIDC step.
+
+## Direct handoff
+
+The upload `manifest` output is a compact JSON object. S3/R2 uses the existing version-1 `s3-artifact` manifest unchanged. Native storage and fallback use a version-1 `github-artifact` descriptor with `name`, positive `artifactId`, and optional `sha256`.
+
+Download `manifest` bypasses listing; external descriptors also bypass native pointer download. It selects one artifact directly into `path`, regardless of `merge-multiple`. `skip-decompress` and `digest-mismatch` retain their meanings. Empty input uses discovery. Invalid nonempty input or simultaneous `name`, `artifact-ids`, or `pattern` fails. GitHub still enforces native artifact access/expiry; external expiry and storage/integrity checks are unchanged.
+
+Descriptors are not signed. Pass trusted upload outputs, and retain the normal storage credentials on the consumer. GitHub job-output secret filtering may suppress an output; an empty input uses discovery.
+
+Native direct handoff skips this action's discovery call, but the official artifact SDK may still query metadata internally when downloading by ID. External direct handoff makes no GitHub artifact API calls during download.

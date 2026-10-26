@@ -44283,9 +44283,9 @@ var require_commonjs6 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/glob@10.4.5/node_modules/glob/dist/commonjs/pattern.js
+// node_modules/.pnpm/glob@10.5.0/node_modules/glob/dist/commonjs/pattern.js
 var require_pattern = __commonJS({
-  "node_modules/.pnpm/glob@10.4.5/node_modules/glob/dist/commonjs/pattern.js"(exports2) {
+  "node_modules/.pnpm/glob@10.5.0/node_modules/glob/dist/commonjs/pattern.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.Pattern = void 0;
@@ -44457,9 +44457,9 @@ var require_pattern = __commonJS({
   }
 });
 
-// node_modules/.pnpm/glob@10.4.5/node_modules/glob/dist/commonjs/ignore.js
+// node_modules/.pnpm/glob@10.5.0/node_modules/glob/dist/commonjs/ignore.js
 var require_ignore = __commonJS({
-  "node_modules/.pnpm/glob@10.4.5/node_modules/glob/dist/commonjs/ignore.js"(exports2) {
+  "node_modules/.pnpm/glob@10.5.0/node_modules/glob/dist/commonjs/ignore.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.Ignore = void 0;
@@ -44554,9 +44554,9 @@ var require_ignore = __commonJS({
   }
 });
 
-// node_modules/.pnpm/glob@10.4.5/node_modules/glob/dist/commonjs/processor.js
+// node_modules/.pnpm/glob@10.5.0/node_modules/glob/dist/commonjs/processor.js
 var require_processor = __commonJS({
-  "node_modules/.pnpm/glob@10.4.5/node_modules/glob/dist/commonjs/processor.js"(exports2) {
+  "node_modules/.pnpm/glob@10.5.0/node_modules/glob/dist/commonjs/processor.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.Processor = exports2.SubWalks = exports2.MatchRecord = exports2.HasWalkedCache = void 0;
@@ -44787,9 +44787,9 @@ var require_processor = __commonJS({
   }
 });
 
-// node_modules/.pnpm/glob@10.4.5/node_modules/glob/dist/commonjs/walker.js
+// node_modules/.pnpm/glob@10.5.0/node_modules/glob/dist/commonjs/walker.js
 var require_walker = __commonJS({
-  "node_modules/.pnpm/glob@10.4.5/node_modules/glob/dist/commonjs/walker.js"(exports2) {
+  "node_modules/.pnpm/glob@10.5.0/node_modules/glob/dist/commonjs/walker.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.GlobStream = exports2.GlobWalker = exports2.GlobUtil = void 0;
@@ -45127,9 +45127,9 @@ var require_walker = __commonJS({
   }
 });
 
-// node_modules/.pnpm/glob@10.4.5/node_modules/glob/dist/commonjs/glob.js
+// node_modules/.pnpm/glob@10.5.0/node_modules/glob/dist/commonjs/glob.js
 var require_glob = __commonJS({
-  "node_modules/.pnpm/glob@10.4.5/node_modules/glob/dist/commonjs/glob.js"(exports2) {
+  "node_modules/.pnpm/glob@10.5.0/node_modules/glob/dist/commonjs/glob.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.Glob = void 0;
@@ -45340,9 +45340,9 @@ var require_glob = __commonJS({
   }
 });
 
-// node_modules/.pnpm/glob@10.4.5/node_modules/glob/dist/commonjs/has-magic.js
+// node_modules/.pnpm/glob@10.5.0/node_modules/glob/dist/commonjs/has-magic.js
 var require_has_magic = __commonJS({
-  "node_modules/.pnpm/glob@10.4.5/node_modules/glob/dist/commonjs/has-magic.js"(exports2) {
+  "node_modules/.pnpm/glob@10.5.0/node_modules/glob/dist/commonjs/has-magic.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.hasMagic = void 0;
@@ -45361,9 +45361,9 @@ var require_has_magic = __commonJS({
   }
 });
 
-// node_modules/.pnpm/glob@10.4.5/node_modules/glob/dist/commonjs/index.js
+// node_modules/.pnpm/glob@10.5.0/node_modules/glob/dist/commonjs/index.js
 var require_commonjs7 = __commonJS({
-  "node_modules/.pnpm/glob@10.4.5/node_modules/glob/dist/commonjs/index.js"(exports2) {
+  "node_modules/.pnpm/glob@10.5.0/node_modules/glob/dist/commonjs/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.glob = exports2.sync = exports2.iterate = exports2.iterateSync = exports2.stream = exports2.streamSync = exports2.Ignore = exports2.hasMagic = exports2.Glob = exports2.unescape = exports2.escape = void 0;
@@ -152041,6 +152041,15 @@ function parseManifest(value, name) {
     throw new Error("Unsafe payload filename.");
   return m3;
 }
+function parseHandoff(value) {
+  if (!value || typeof value !== "object") throw new Error("Invalid artifact manifest.");
+  const m3 = value;
+  if (m3.kind === "s3-artifact") return parseManifest(value, String(m3.name));
+  if (m3.kind !== "github-artifact" || m3.schemaVersion !== 1 || typeof m3.name !== "string" || !Number.isSafeInteger(m3.artifactId) || Number(m3.artifactId) <= 0 || m3.sha256 !== void 0 && (typeof m3.sha256 !== "string" || !/^[a-f0-9]{64}$/u.test(m3.sha256)))
+    throw new Error("Invalid or unsupported artifact manifest.");
+  validateName(m3.name);
+  return m3;
+}
 
 // packages/core/src/files.ts
 import { createReadStream as createReadStream3, createWriteStream as createWriteStream2 } from "node:fs";
@@ -152747,6 +152756,10 @@ function handleDigestMismatch(mismatch, behavior, label) {
 
 // download/src/run.ts
 async function run() {
+  const input = getInput("manifest").trim();
+  if (input && ["name", "artifact-ids", "pattern"].some((key) => getInput(key)))
+    throw new Error("manifest is mutually exclusive with name, artifact-ids, and pattern.");
+  const direct = input ? parseHandoff(JSON.parse(input)) : void 0;
   const name = getInput("name");
   if (name) validateName(name);
   const idInput = getInput("artifact-ids");
@@ -152765,8 +152778,13 @@ async function run() {
       throw new Error("A valid repository and run-id are required.");
     options.findBy = { token, workflowRunId, repositoryName, repositoryOwner };
   }
-  const { artifacts } = await artifact_default.listArtifacts({ ...options, latest: false });
-  const selected = selectArtifacts(artifacts, {
+  const selected = direct ? [
+    {
+      id: direct.kind === "github-artifact" ? direct.artifactId : 0,
+      name: direct.kind === "github-artifact" ? direct.name : `${direct.name}${SUFFIX}`,
+      digest: direct.kind === "github-artifact" ? direct.sha256 : void 0
+    }
+  ] : selectArtifacts((await artifact_default.listArtifacts({ ...options, latest: false })).artifacts, {
     name,
     pattern: getInput("pattern"),
     ...ids ? { ids } : {}
@@ -152775,8 +152793,8 @@ async function run() {
   await mkdir3(destination, { recursive: true });
   const merge3 = booleanInput("merge-multiple", false);
   const skip = booleanInput("skip-decompress", false);
-  const single = Boolean(name) || ids?.length === 1;
-  const config = storageConfig();
+  const single = Boolean(direct) || Boolean(name) || ids?.length === 1;
+  const config = direct?.kind === "github-artifact" ? void 0 : storageConfig();
   const client2 = config ? createStorage(config) : void 0;
   const temporary = await mkdtemp(path7.join(tmpdir(), "s3-artifact-download-"));
   try {
@@ -152788,26 +152806,32 @@ async function run() {
       const expectedHash = item.digest?.replace(/^sha256:/u, "");
       const hashOptions = expectedHash ? { expectedHash } : {};
       if (!item.name.endsWith(SUFFIX)) {
-        const result2 = await artifact_default.downloadArtifact(item.id, {
+        const result = await artifact_default.downloadArtifact(item.id, {
           ...options,
           ...hashOptions,
           path: target,
           skipDecompress: skip
         });
-        handleDigestMismatch(result2.digestMismatch ?? false, behavior, logical);
+        handleDigestMismatch(result.digestMismatch ?? false, behavior, logical);
         continue;
       }
       const pointerDir = path7.join(temporary, String(item.id));
-      const result = await artifact_default.downloadArtifact(item.id, {
-        ...options,
-        ...hashOptions,
-        path: pointerDir
-      });
-      handleDigestMismatch(result.digestMismatch ?? false, behavior, `${logical} manifest`);
-      const manifest = parseManifest(
-        JSON.parse(await readFile3(path7.join(pointerDir, `${item.name}.manifest.json`), "utf8")),
-        logical
-      );
+      await mkdir3(pointerDir, { recursive: true });
+      let manifest;
+      if (direct?.kind === "s3-artifact") {
+        manifest = direct;
+      } else {
+        const result = await artifact_default.downloadArtifact(item.id, {
+          ...options,
+          ...hashOptions,
+          path: pointerDir
+        });
+        handleDigestMismatch(result.digestMismatch ?? false, behavior, `${logical} manifest`);
+        manifest = parseManifest(
+          JSON.parse(await readFile3(path7.join(pointerDir, `${item.name}.manifest.json`), "utf8")),
+          logical
+        );
+      }
       if (Date.now() >= Date.parse(manifest.expiresAt))
         throw new Error(`Artifact '${logical}' has expired.`);
       if (!client2 || !config)

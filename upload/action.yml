@@ -44,6 +44,8 @@ inputs:
     description: "Use path-style S3 requests."
     default: "false"
 outputs:
+  manifest:
+    description: "Compact JSON descriptor for direct handoff to the download action."
   artifact-id:
     description: "GitHub artifact ID; refers to the manifest in external mode."
   artifact-url:

@@ -62,6 +62,16 @@ export async function run(): Promise<void> {
   async function nativeUpload(): Promise<void> {
     const result = await artifact.uploadArtifact(name, files, root, options);
     report(result, "github", result.digest ?? "");
+    core.setOutput(
+      "manifest",
+      JSON.stringify({
+        kind: "github-artifact",
+        schemaVersion: 1,
+        name,
+        artifactId: result.id,
+        ...(result.digest ? { sha256: result.digest } : {}),
+      }),
+    );
   }
   function report(result: UploadArtifactResponse, backend: string, payloadDigest: string): void {
     if (!result.id) throw new Error("GitHub did not return an artifact ID.");
@@ -149,6 +159,7 @@ export async function run(): Promise<void> {
       throw error;
     }
     report(result, "s3", sha256);
+    core.setOutput("manifest", JSON.stringify(manifest));
     core.info(`Payload size: ${size} bytes. GitHub stores the manifest only.`);
   } finally {
     client.destroy();

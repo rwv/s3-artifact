@@ -9,6 +9,7 @@ import {
   logicalName,
   selectArtifacts,
   parseManifest,
+  parseHandoff,
   storageConfig,
   booleanInput,
   destinationPath,
@@ -22,6 +23,10 @@ import {
 } from "../../packages/core/src/index.ts";
 
 export async function run(): Promise<void> {
+  const input = core.getInput("manifest").trim();
+  if (input && ["name", "artifact-ids", "pattern"].some((key) => core.getInput(key)))
+    throw new Error("manifest is mutually exclusive with name, artifact-ids, and pattern.");
+  const direct = input ? parseHandoff(JSON.parse(input)) : undefined;
   const name = core.getInput("name");
   if (name) validateName(name);
   const idInput = core.getInput("artifact-ids");
@@ -49,18 +54,25 @@ export async function run(): Promise<void> {
       throw new Error("A valid repository and run-id are required.");
     options.findBy = { token, workflowRunId, repositoryName, repositoryOwner };
   }
-  const { artifacts } = await artifact.listArtifacts({ ...options, latest: false });
-  const selected = selectArtifacts(artifacts, {
-    name,
-    pattern: core.getInput("pattern"),
-    ...(ids ? { ids } : {}),
-  });
+  const selected = direct
+    ? [
+        {
+          id: direct.kind === "github-artifact" ? direct.artifactId : 0,
+          name: direct.kind === "github-artifact" ? direct.name : `${direct.name}${SUFFIX}`,
+          digest: direct.kind === "github-artifact" ? direct.sha256 : undefined,
+        },
+      ]
+    : selectArtifacts((await artifact.listArtifacts({ ...options, latest: false })).artifacts, {
+        name,
+        pattern: core.getInput("pattern"),
+        ...(ids ? { ids } : {}),
+      });
   const destination = destinationPath();
   await mkdir(destination, { recursive: true });
   const merge = booleanInput("merge-multiple", false);
   const skip = booleanInput("skip-decompress", false);
-  const single = Boolean(name) || ids?.length === 1;
-  const config = storageConfig();
+  const single = Boolean(direct) || Boolean(name) || ids?.length === 1;
+  const config = direct?.kind === "github-artifact" ? undefined : storageConfig();
   const client = config ? createStorage(config) : undefined;
   const temporary = await mkdtemp(path.join(tmpdir(), "s3-artifact-download-"));
   try {
@@ -83,16 +95,22 @@ export async function run(): Promise<void> {
         continue;
       }
       const pointerDir = path.join(temporary, String(item.id));
-      const result = await artifact.downloadArtifact(item.id, {
-        ...options,
-        ...hashOptions,
-        path: pointerDir,
-      });
-      handleDigestMismatch(result.digestMismatch ?? false, behavior, `${logical} manifest`);
-      const manifest = parseManifest(
-        JSON.parse(await readFile(path.join(pointerDir, `${item.name}.manifest.json`), "utf8")),
-        logical,
-      );
+      await mkdir(pointerDir, { recursive: true });
+      let manifest;
+      if (direct?.kind === "s3-artifact") {
+        manifest = direct;
+      } else {
+        const result = await artifact.downloadArtifact(item.id, {
+          ...options,
+          ...hashOptions,
+          path: pointerDir,
+        });
+        handleDigestMismatch(result.digestMismatch ?? false, behavior, `${logical} manifest`);
+        manifest = parseManifest(
+          JSON.parse(await readFile(path.join(pointerDir, `${item.name}.manifest.json`), "utf8")),
+          logical,
+        );
+      }
       if (Date.now() >= Date.parse(manifest.expiresAt))
         throw new Error(`Artifact '${logical}' has expired.`);
       if (!client || !config)
