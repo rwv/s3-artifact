@@ -29,4 +29,4 @@ Only squash merging is enabled. Main requires passing quality/title gates and re
 
 Both actions share one version. Update package.json and CHANGELOG.md, regenerate bundles, merge with passing gates, then dispatch the Release workflow from main.
 
-Exact version tags stay fixed. The `v0` alias follows new releases; pin an exact version or SHA for reproducibility. Versions 0.x are prereleases. Version manifest schemas separately when their format changes.
+Exact version tags stay fixed. The `v1` alias follows compatible 1.x releases; pin an exact version or SHA for reproducibility. Inputs, outputs, and manifest v1 are stable in 1.x; incompatible changes require a new major version. Version manifest schemas separately when their format changes.
