@@ -1,0 +1,49 @@
+name: "S3 Artifact Download"
+description: "Download S3/R2 artifacts and native GitHub artifacts using compatible inputs."
+author: rwv
+inputs:
+  name:
+    description: "Logical artifact name to download; omit to select all artifacts."
+  artifact-ids:
+    description: "Comma-separated GitHub artifact IDs. Mutually exclusive with name."
+  path:
+    description: "Destination path; defaults to GITHUB_WORKSPACE."
+  pattern:
+    description: "Glob matching logical artifact names; ignored when name or IDs are provided."
+  merge-multiple:
+    description: "Extract multiple artifacts into the same destination directory."
+    default: "false"
+  github-token:
+    description: "GitHub token with actions:read for cross-run or cross-repository discovery."
+  repository:
+    description: "Repository to query when github-token is supplied."
+    default: "${{ github.repository }}"
+  run-id:
+    description: "Workflow run to query when github-token is supplied."
+    default: "${{ github.run_id }}"
+  skip-decompress:
+    description: "Download the payload without extracting it."
+    default: "false"
+  digest-mismatch:
+    description: "Digest mismatch behavior: error, warn, info, ignore."
+    default: "error"
+  s3-bucket:
+    description: "External bucket. Alternatively S3_ARTIFACT_BUCKET."
+  s3-endpoint:
+    description: "S3-compatible endpoint. Alternatively S3_ARTIFACT_ENDPOINT."
+  s3-region:
+    description: "AWS region; defaults to AWS_REGION or auto for R2."
+  s3-prefix:
+    description: "Object prefix. Alternatively S3_ARTIFACT_PREFIX; defaults to s3-artifacts."
+  s3-force-path-style:
+    description: "Use path-style S3 requests."
+    default: "false"
+outputs:
+  download-path:
+    description: "Absolute destination path."
+runs:
+  using: node24
+  main: dist/index.js
+branding:
+  icon: package
+  color: orange

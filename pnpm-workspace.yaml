@@ -1,0 +1,4 @@
+packages:
+  - packages/*
+# Keep virtual-store paths identical on Linux, macOS, and Windows.
+virtualStoreDirMaxLength: 60
