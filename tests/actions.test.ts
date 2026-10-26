@@ -247,3 +247,19 @@ it("enforces expiry, storage scope, and payload integrity for direct handoffs", 
   }
   expect(mocks.download).not.toHaveBeenCalled();
 });
+
+it("downloads native artifacts by name despite incomplete external configuration", async () => {
+  uploadInputs(false);
+  await upload();
+  mocks.inputs = {
+    name: "build",
+    path: path.join(directory, "out"),
+    "s3-bucket": "unused",
+    "s3-prefix": "../invalid",
+    "s3-access-key-id": "",
+    "s3-secret-access-key": "",
+  };
+  await download();
+  expect(await readFile(path.join(directory, "out", "nested", "file.txt"), "utf8")).toBe("hello");
+  expect(mocks.get).not.toHaveBeenCalled();
+});

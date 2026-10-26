@@ -2393,9 +2393,9 @@ var require_timers = __commonJS({
        * before the specified function or code is executed.
        * @param {*} arg
        */
-      constructor(callback, delay4, arg) {
+      constructor(callback, delay5, arg) {
         this._onTimeout = callback;
-        this._idleTimeout = delay4;
+        this._idleTimeout = delay5;
         this._timerArg = arg;
         this.refresh();
       }
@@ -2440,8 +2440,8 @@ var require_timers = __commonJS({
        * when the timer expires.
        * @returns {NodeJS.Timeout|FastTimer}
        */
-      setTimeout(callback, delay4, arg) {
-        return delay4 <= RESOLUTION_MS ? setTimeout(callback, delay4, arg) : new FastTimer(callback, delay4, arg);
+      setTimeout(callback, delay5, arg) {
+        return delay5 <= RESOLUTION_MS ? setTimeout(callback, delay5, arg) : new FastTimer(callback, delay5, arg);
       },
       /**
        * The clearTimeout method cancels an instantiated Timer previously created
@@ -2467,8 +2467,8 @@ var require_timers = __commonJS({
        * when the timer expires.
        * @returns {FastTimer}
        */
-      setFastTimeout(callback, delay4, arg) {
-        return new FastTimer(callback, delay4, arg);
+      setFastTimeout(callback, delay5, arg) {
+        return new FastTimer(callback, delay5, arg);
       },
       /**
        * The clearTimeout method cancels an instantiated FastTimer previously
@@ -2494,8 +2494,8 @@ var require_timers = __commonJS({
        * @deprecated
        * @param {number} [delay=0] The delay in milliseconds to add to the now value.
        */
-      tick(delay4 = 0) {
-        fastNow += delay4 - RESOLUTION_MS + 1;
+      tick(delay5 = 0) {
+        fastNow += delay5 - RESOLUTION_MS + 1;
         onTick();
         onTick();
       },
@@ -5894,21 +5894,21 @@ var require_client_h1 = __commonJS({
         this.connection = "";
         this.maxResponseSize = client2[kMaxResponseSize];
       }
-      setTimeout(delay4, type) {
-        if (delay4 !== this.timeoutValue || type & USE_FAST_TIMER ^ this.timeoutType & USE_FAST_TIMER) {
+      setTimeout(delay5, type) {
+        if (delay5 !== this.timeoutValue || type & USE_FAST_TIMER ^ this.timeoutType & USE_FAST_TIMER) {
           if (this.timeout) {
             timers.clearTimeout(this.timeout);
             this.timeout = null;
           }
-          if (delay4) {
+          if (delay5) {
             if (type & USE_FAST_TIMER) {
-              this.timeout = timers.setFastTimeout(onParserTimeout, delay4, new WeakRef(this));
+              this.timeout = timers.setFastTimeout(onParserTimeout, delay5, new WeakRef(this));
             } else {
-              this.timeout = setTimeout(onParserTimeout, delay4, new WeakRef(this));
+              this.timeout = setTimeout(onParserTimeout, delay5, new WeakRef(this));
               this.timeout.unref();
             }
           }
-          this.timeoutValue = delay4;
+          this.timeoutValue = delay5;
         } else if (this.timeout) {
           if (this.timeout.refresh) {
             this.timeout.refresh();
@@ -10861,7 +10861,7 @@ var require_mock_utils = __commonJS({
       if (mockDispatch2.data.callback) {
         mockDispatch2.data = { ...mockDispatch2.data, ...mockDispatch2.data.callback(opts) };
       }
-      const { data: { statusCode, data, headers, trailers, error: error3 }, delay: delay4, persist } = mockDispatch2;
+      const { data: { statusCode, data, headers, trailers, error: error3 }, delay: delay5, persist } = mockDispatch2;
       const { timesInvoked, times } = mockDispatch2;
       mockDispatch2.consumed = !persist && timesInvoked >= times;
       mockDispatch2.pending = timesInvoked < times;
@@ -10870,10 +10870,10 @@ var require_mock_utils = __commonJS({
         handler2.onError(error3);
         return true;
       }
-      if (typeof delay4 === "number" && delay4 > 0) {
+      if (typeof delay5 === "number" && delay5 > 0) {
         setTimeout(() => {
           handleReply(this[kDispatches]);
-        }, delay4);
+        }, delay5);
       } else {
         handleReply(this[kDispatches]);
       }
@@ -18302,7 +18302,7 @@ var require_util8 = __commonJS({
       }
       return true;
     }
-    function delay4(ms) {
+    function delay5(ms) {
       return new Promise((resolve3) => {
         setTimeout(resolve3, ms).unref();
       });
@@ -18310,7 +18310,7 @@ var require_util8 = __commonJS({
     module2.exports = {
       isValidLastEventId,
       isASCIINumber,
-      delay: delay4
+      delay: delay5
     };
   }
 });
@@ -18732,7 +18732,7 @@ var require_eventsource = __commonJS({
     var { parseMIMEType } = require_data_url();
     var { createFastMessageEvent } = require_events();
     var { isNetworkError } = require_response();
-    var { delay: delay4 } = require_util8();
+    var { delay: delay5 } = require_util8();
     var { kEnumerableProperty } = require_util();
     var { environmentSettingsObject } = require_util2();
     var { getGlobalDispatcher } = require_global2();
@@ -18905,7 +18905,7 @@ var require_eventsource = __commonJS({
         if (this.#readyState === CLOSED) return;
         this.#readyState = CONNECTING;
         this.dispatchEvent(new Event("error"));
-        await delay4(this.#state.reconnectionTime);
+        await delay5(this.#state.reconnectionTime);
         if (this.#readyState !== CONNECTING) return;
         if (this.#state.lastEventId.length) {
           this.#request.headersList.set("last-event-id", this.#state.lastEventId, true);
@@ -23028,7 +23028,7 @@ var require_test_transport = __commonJS({
             messages.push(this.data.response);
           }
           try {
-            yield delay4(this.responseDelay, abort)(void 0);
+            yield delay5(this.responseDelay, abort)(void 0);
           } catch (error3) {
             stream4.notifyError(error3);
             return;
@@ -23040,7 +23040,7 @@ var require_test_transport = __commonJS({
           for (let msg of messages) {
             stream4.notifyMessage(msg);
             try {
-              yield delay4(this.betweenResponseDelay, abort)(void 0);
+              yield delay5(this.betweenResponseDelay, abort)(void 0);
             } catch (error3) {
               stream4.notifyError(error3);
               return;
@@ -23082,36 +23082,36 @@ var require_test_transport = __commonJS({
       }
       unary(method, input, options) {
         var _a3;
-        const requestHeaders = (_a3 = options.meta) !== null && _a3 !== void 0 ? _a3 : {}, headersPromise = this.promiseHeaders().then(delay4(this.headerDelay, options.abort)), responsePromise = headersPromise.catch((_2) => {
-        }).then(delay4(this.responseDelay, options.abort)).then((_2) => this.promiseSingleResponse(method)), statusPromise = responsePromise.catch((_2) => {
-        }).then(delay4(this.afterResponseDelay, options.abort)).then((_2) => this.promiseStatus()), trailersPromise = responsePromise.catch((_2) => {
-        }).then(delay4(this.afterResponseDelay, options.abort)).then((_2) => this.promiseTrailers());
+        const requestHeaders = (_a3 = options.meta) !== null && _a3 !== void 0 ? _a3 : {}, headersPromise = this.promiseHeaders().then(delay5(this.headerDelay, options.abort)), responsePromise = headersPromise.catch((_2) => {
+        }).then(delay5(this.responseDelay, options.abort)).then((_2) => this.promiseSingleResponse(method)), statusPromise = responsePromise.catch((_2) => {
+        }).then(delay5(this.afterResponseDelay, options.abort)).then((_2) => this.promiseStatus()), trailersPromise = responsePromise.catch((_2) => {
+        }).then(delay5(this.afterResponseDelay, options.abort)).then((_2) => this.promiseTrailers());
         this.maybeSuppressUncaught(statusPromise, trailersPromise);
         this.lastInput = { single: input };
         return new unary_call_1.UnaryCall(method, requestHeaders, input, headersPromise, responsePromise, statusPromise, trailersPromise);
       }
       serverStreaming(method, input, options) {
         var _a3;
-        const requestHeaders = (_a3 = options.meta) !== null && _a3 !== void 0 ? _a3 : {}, headersPromise = this.promiseHeaders().then(delay4(this.headerDelay, options.abort)), outputStream = new rpc_output_stream_1.RpcOutputStreamController(), responseStreamClosedPromise = headersPromise.then(delay4(this.responseDelay, options.abort)).catch(() => {
-        }).then(() => this.streamResponses(method, outputStream, options.abort)).then(delay4(this.afterResponseDelay, options.abort)), statusPromise = responseStreamClosedPromise.then(() => this.promiseStatus()), trailersPromise = responseStreamClosedPromise.then(() => this.promiseTrailers());
+        const requestHeaders = (_a3 = options.meta) !== null && _a3 !== void 0 ? _a3 : {}, headersPromise = this.promiseHeaders().then(delay5(this.headerDelay, options.abort)), outputStream = new rpc_output_stream_1.RpcOutputStreamController(), responseStreamClosedPromise = headersPromise.then(delay5(this.responseDelay, options.abort)).catch(() => {
+        }).then(() => this.streamResponses(method, outputStream, options.abort)).then(delay5(this.afterResponseDelay, options.abort)), statusPromise = responseStreamClosedPromise.then(() => this.promiseStatus()), trailersPromise = responseStreamClosedPromise.then(() => this.promiseTrailers());
         this.maybeSuppressUncaught(statusPromise, trailersPromise);
         this.lastInput = { single: input };
         return new server_streaming_call_1.ServerStreamingCall(method, requestHeaders, input, headersPromise, outputStream, statusPromise, trailersPromise);
       }
       clientStreaming(method, options) {
         var _a3;
-        const requestHeaders = (_a3 = options.meta) !== null && _a3 !== void 0 ? _a3 : {}, headersPromise = this.promiseHeaders().then(delay4(this.headerDelay, options.abort)), responsePromise = headersPromise.catch((_2) => {
-        }).then(delay4(this.responseDelay, options.abort)).then((_2) => this.promiseSingleResponse(method)), statusPromise = responsePromise.catch((_2) => {
-        }).then(delay4(this.afterResponseDelay, options.abort)).then((_2) => this.promiseStatus()), trailersPromise = responsePromise.catch((_2) => {
-        }).then(delay4(this.afterResponseDelay, options.abort)).then((_2) => this.promiseTrailers());
+        const requestHeaders = (_a3 = options.meta) !== null && _a3 !== void 0 ? _a3 : {}, headersPromise = this.promiseHeaders().then(delay5(this.headerDelay, options.abort)), responsePromise = headersPromise.catch((_2) => {
+        }).then(delay5(this.responseDelay, options.abort)).then((_2) => this.promiseSingleResponse(method)), statusPromise = responsePromise.catch((_2) => {
+        }).then(delay5(this.afterResponseDelay, options.abort)).then((_2) => this.promiseStatus()), trailersPromise = responsePromise.catch((_2) => {
+        }).then(delay5(this.afterResponseDelay, options.abort)).then((_2) => this.promiseTrailers());
         this.maybeSuppressUncaught(statusPromise, trailersPromise);
         this.lastInput = new TestInputStream(this.data, options.abort);
         return new client_streaming_call_1.ClientStreamingCall(method, requestHeaders, this.lastInput, headersPromise, responsePromise, statusPromise, trailersPromise);
       }
       duplex(method, options) {
         var _a3;
-        const requestHeaders = (_a3 = options.meta) !== null && _a3 !== void 0 ? _a3 : {}, headersPromise = this.promiseHeaders().then(delay4(this.headerDelay, options.abort)), outputStream = new rpc_output_stream_1.RpcOutputStreamController(), responseStreamClosedPromise = headersPromise.then(delay4(this.responseDelay, options.abort)).catch(() => {
-        }).then(() => this.streamResponses(method, outputStream, options.abort)).then(delay4(this.afterResponseDelay, options.abort)), statusPromise = responseStreamClosedPromise.then(() => this.promiseStatus()), trailersPromise = responseStreamClosedPromise.then(() => this.promiseTrailers());
+        const requestHeaders = (_a3 = options.meta) !== null && _a3 !== void 0 ? _a3 : {}, headersPromise = this.promiseHeaders().then(delay5(this.headerDelay, options.abort)), outputStream = new rpc_output_stream_1.RpcOutputStreamController(), responseStreamClosedPromise = headersPromise.then(delay5(this.responseDelay, options.abort)).catch(() => {
+        }).then(() => this.streamResponses(method, outputStream, options.abort)).then(delay5(this.afterResponseDelay, options.abort)), statusPromise = responseStreamClosedPromise.then(() => this.promiseStatus()), trailersPromise = responseStreamClosedPromise.then(() => this.promiseTrailers());
         this.maybeSuppressUncaught(statusPromise, trailersPromise);
         this.lastInput = new TestInputStream(this.data, options.abort);
         return new duplex_streaming_call_1.DuplexStreamingCall(method, requestHeaders, this.lastInput, headersPromise, outputStream, statusPromise, trailersPromise);
@@ -23128,7 +23128,7 @@ var require_test_transport = __commonJS({
     TestTransport.defaultTrailers = {
       responseTrailer: "test"
     };
-    function delay4(ms, abort) {
+    function delay5(ms, abort) {
       return (v) => new Promise((resolve3, reject) => {
         if (abort === null || abort === void 0 ? void 0 : abort.aborted) {
           reject(new rpc_error_1.RpcError("user cancel", "CANCELLED"));
@@ -23163,7 +23163,7 @@ var require_test_transport = __commonJS({
         const delayMs = this.data.inputMessage === void 0 ? 10 : this.data.inputMessage;
         return Promise.resolve(void 0).then(() => {
           this._sent.push(message);
-        }).then(delay4(delayMs, this.abort));
+        }).then(delay5(delayMs, this.abort));
       }
       complete() {
         if (this.data.inputComplete instanceof rpc_error_1.RpcError) {
@@ -23172,7 +23172,7 @@ var require_test_transport = __commonJS({
         const delayMs = this.data.inputComplete === void 0 ? 10 : this.data.inputComplete;
         return Promise.resolve(void 0).then(() => {
           this._completed = true;
-        }).then(delay4(delayMs, this.abort));
+        }).then(delay5(delayMs, this.abort));
       }
     };
   }
@@ -67061,9 +67061,9 @@ var require_timers2 = __commonJS({
         clearTimeout(this.handle);
       };
       var afterValue = function(value) {
-        return delay4(+this).thenReturn(value);
+        return delay5(+this).thenReturn(value);
       };
-      var delay4 = Promise2.delay = function(ms, value) {
+      var delay5 = Promise2.delay = function(ms, value) {
         var ret2;
         var handle;
         if (value !== void 0) {
@@ -67085,7 +67085,7 @@ var require_timers2 = __commonJS({
         return ret2;
       };
       Promise2.prototype.delay = function(ms) {
-        return delay4(ms, this);
+        return delay5(ms, this);
       };
       var afterTimeout = function(promise, message, parent) {
         var err;
@@ -69289,8 +69289,8 @@ var init_poller = __esm({
       if (attempt > attemptCountCeiling) {
         return maxDelayMs;
       }
-      const delay4 = minDelayMs * 2 ** (attempt - 1);
-      const capped = Math.min(delay4, maxDelayMs);
+      const delay5 = minDelayMs * 2 ** (attempt - 1);
+      const capped = Math.min(delay5, maxDelayMs);
       const waitFor = randomInRange(minDelayMs, capped);
       if (Date.now() + waitFor > waitUntil) {
         const timeRemaining = waitUntil - Date.now();
@@ -80503,10 +80503,10 @@ function bindRetryMiddleware(isStreamingPayload2) {
             throw lastError;
           }
           attempts = retryToken.getRetryCount();
-          const delay4 = retryToken.getRetryDelay();
-          totalRetryDelay += (retryToken?.$retryLog?.acquisitionDelay ?? 0) + delay4;
-          if (delay4 > 0) {
-            await cooldown(delay4);
+          const delay5 = retryToken.getRetryDelay();
+          totalRetryDelay += (retryToken?.$retryLog?.acquisitionDelay ?? 0) + delay5;
+          if (delay5 > 0) {
+            await cooldown(delay5);
           }
         }
       }
@@ -80575,7 +80575,7 @@ var init_DefaultRateLimiter = __esm({
   "node_modules/.pnpm/@smithy+core@3.36.2/node_modules/@smithy/core/dist-es/submodules/retry/util-retry/DefaultRateLimiter.js"() {
     init_service_error_classification();
     DefaultRateLimiter = class _DefaultRateLimiter {
-      static setTimeoutFn = (fn, delay4) => setTimeout(fn, delay4);
+      static setTimeoutFn = (fn, delay5) => setTimeout(fn, delay5);
       beta;
       minCapacity;
       minFillRate;
@@ -80634,8 +80634,8 @@ var init_DefaultRateLimiter = __esm({
         }
         this.refillTokenBucket();
         while (amount > this.availableTokens) {
-          const delay4 = (amount - this.availableTokens) / this.fillRate * 1e3;
-          await new Promise((resolve3) => _DefaultRateLimiter.setTimeoutFn(resolve3, delay4));
+          const delay5 = (amount - this.availableTokens) / this.fillRate * 1e3;
+          await new Promise((resolve3) => _DefaultRateLimiter.setTimeoutFn(resolve3, delay5));
           this.refillTokenBucket();
         }
         this.availableTokens = this.availableTokens - amount;
@@ -80725,8 +80725,8 @@ var init_DefaultRetryBackoffStrategy = __esm({
         const t_i = b5 * Math.min(this.x * r5 ** i5, MAXIMUM_RETRY_DELAY);
         return Math.floor(t_i);
       }
-      setDelayBase(delay4) {
-        this.x = delay4;
+      setDelayBase(delay5) {
+        this.x = delay5;
       }
     };
   }
@@ -80745,8 +80745,8 @@ var init_DefaultRetryToken = __esm({
       $retryLog = {
         acquisitionDelay: 0
       };
-      constructor(delay4, count, cost, longPoll) {
-        this.delay = delay4;
+      constructor(delay5, count, cost, longPoll) {
+        this.delay = delay5;
         this.count = count;
         this.cost = cost;
         this.longPoll = longPoll;
@@ -81071,9 +81071,9 @@ var init_StandardRetryStrategy2 = __esm({
               retryTokenAmount = this.retryQuota.retrieveRetryTokens(err);
               const delayFromDecider = this.delayDecider(isThrottlingError(err) ? THROTTLING_RETRY_DELAY_BASE : DEFAULT_RETRY_DELAY_BASE, attempts);
               const delayFromResponse = getDelayFromRetryAfterHeader(err.$response);
-              const delay4 = Math.max(delayFromResponse || 0, delayFromDecider);
-              totalDelay += delay4;
-              await new Promise((resolve3) => setTimeout(resolve3, delay4));
+              const delay5 = Math.max(delayFromResponse || 0, delayFromDecider);
+              totalDelay += delay5;
+              await new Promise((resolve3) => setTimeout(resolve3, delay5));
               continue;
             }
             if (!err.$metadata) {
@@ -152701,6 +152701,7 @@ var import_client_s3 = __toESM(require_dist_cjs16(), 1);
 var import_lib_storage = __toESM(require_dist_cjs17(), 1);
 var import_node_http_handler5 = __toESM(require_dist_cjs7(), 1);
 import { createReadStream as createReadStream4, createWriteStream as createWriteStream3 } from "node:fs";
+import { setTimeout as delay4 } from "node:timers/promises";
 import { pipeline as pipeline2 } from "node:stream/promises";
 function createStorage(config) {
   return new import_client_s3.S3Client({
@@ -152716,9 +152717,19 @@ function createStorage(config) {
   });
 }
 async function getPayload(client2, bucket, key, file) {
-  const result = await client2.send(new import_client_s3.GetObjectCommand({ Bucket: bucket, Key: key }));
-  if (!result.Body) throw new Error("Object storage returned an empty response body.");
-  await pipeline2(result.Body, createWriteStream3(file));
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const result = await client2.send(new import_client_s3.GetObjectCommand({ Bucket: bucket, Key: key }));
+    if (!result.Body) throw new Error("Object storage returned an empty response body.");
+    try {
+      await pipeline2(result.Body, createWriteStream3(file));
+      return;
+    } catch (error3) {
+      const code = error3.code;
+      if (attempt === 2 || !["ECONNRESET", "ETIMEDOUT", "EPIPE", "ERR_STREAM_PREMATURE_CLOSE"].includes(code ?? ""))
+        throw error3;
+      await delay4(250 * 2 ** attempt);
+    }
+  }
 }
 
 // packages/core/src/inputs.ts
@@ -152805,7 +152816,7 @@ async function run() {
   const merge3 = booleanInput("merge-multiple", false);
   const skip = booleanInput("skip-decompress", false);
   const single = Boolean(direct) || Boolean(name) || ids?.length === 1;
-  const config = direct?.kind === "github-artifact" ? void 0 : storageConfig();
+  const config = selected.some((item) => item.name.endsWith(SUFFIX)) ? storageConfig() : void 0;
   const client2 = config ? createStorage(config) : void 0;
   const temporary = await mkdtemp(path7.join(tmpdir(), "s3-artifact-download-"));
   try {

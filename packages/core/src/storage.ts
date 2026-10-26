@@ -1,4 +1,5 @@
 import { createReadStream, createWriteStream } from "node:fs";
+import { setTimeout as delay } from "node:timers/promises";
 import { pipeline } from "node:stream/promises";
 import { S3Client, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
@@ -57,9 +58,23 @@ export async function getPayload(
   key: string,
   file: string,
 ): Promise<void> {
-  const result = await client.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
-  if (!result.Body) throw new Error("Object storage returned an empty response body.");
-  await pipeline(result.Body as Readable, createWriteStream(file));
+  for (let attempt = 0; attempt < 3; attempt++) {
+    // The SDK retries request failures; retry interrupted response streams here.
+    const result = await client.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+    if (!result.Body) throw new Error("Object storage returned an empty response body.");
+    try {
+      await pipeline(result.Body as Readable, createWriteStream(file));
+      return;
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if (
+        attempt === 2 ||
+        !["ECONNRESET", "ETIMEDOUT", "EPIPE", "ERR_STREAM_PREMATURE_CLOSE"].includes(code ?? "")
+      )
+        throw error;
+      await delay(250 * 2 ** attempt);
+    }
+  }
 }
 export async function deletePayload(client: S3Client, bucket: string, key: string): Promise<void> {
   await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));

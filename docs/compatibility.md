@@ -1,59 +1,39 @@
-# Compatibility contract
+# Compatibility
 
-The reference interfaces are upload-artifact v7 and download-artifact v8. This project offers workflow-level compatibility, not an interchangeable GitHub storage format.
+The input reference is upload-artifact v7 and download-artifact v8. The actions require a Node 24-capable runner and support Linux, Windows, and macOS. GHES is not supported.
 
-## Names and discovery
+## Naming and reruns
 
-Logical `build` maps to native `build` or external-pointer `build.s3-artifact`. The suffix is reserved. Names cannot contain filesystem path separators, GitHub-invalid filename characters, or exceed 255 UTF-8 bytes including the full `.s3-artifact.manifest.json` filename suffix. Pattern matching occurs after removing the suffix.
+Logical `build` maps to native `build` or external `build.s3-artifact`. The suffix is reserved. Names must be safe filenames and fit within 255 UTF-8 bytes including `.s3-artifact.manifest.json`.
 
-GitHub's artifact client determines the visible run scope. We do not query unrelated runs or require matching the current attempt. Reruns keep the run ID and get distinct payload UUIDs. Explicit artifact IDs select exact artifacts; name/all queries deduplicate to the highest artifact ID. Re-run behavior is covered at the selection layer, not by live GitHub smoke tests.
+Name and pattern queries select the highest visible artifact ID per logical name. Explicit IDs select exact artifacts, including earlier attempts. A previous attempt's visible name requires `overwrite: true` before uploading again. Parallel producers need unique names.
 
-Use a unique logical name per parallel producer (for example, include a matrix dimension). Concurrent uploads of the same logical name are unsupported, particularly when one producer falls back to GitHub and another publishes an external pointer. Prefixes organize storage; shared bucket credentials do not enforce per-run authorization.
+Overwrite deletes the latest visible artifacts for both physical names before uploading. If replacement fails, the previous artifact may already be gone. Old S3 payloads expire through lifecycle.
 
-## Overwrite
+## Files
 
-The wrapper checks visible logical names before either backend is used. If a previous attempt remains visible under the same logical name, uploading again requires `overwrite: true`. This is a deliberate v0.1.0 difference from backend-specific rerun name handling; downloading a previous attempt does not require an override.
+ZIP entries are regular files; upload dereferences symlinks and does not preserve executable bits or empty directories. Use a tar file when those matter. Multiple upload paths use their common search root. Hidden files are excluded by default.
 
-`overwrite: true` deletes the latest visible artifacts for both physical names before uploading. A failed replacement may leave no current artifact, like the official delete-then-upload behavior. Older rerun artifacts can still exist and be selected by ID. Old external payloads expire through lifecycle; overwrite does not eagerly scan or delete storage objects.
+Single-name, single-ID, and direct-manifest downloads extract directly into `path`. Multiple artifacts use logical-name subdirectories unless `merge-multiple` is set. Collisions resolve in ascending artifact-ID order, so the highest ID wins.
 
-## Files and downloads
+`archive: false` requires one file and uses its basename as the artifact name. `skip-decompress` keeps the actual payload rather than the metadata.
 
-ZIP is the default. `compression-level: 0` still produces a ZIP. `archive: false` uses a single file's basename, ignoring `name`. External ZIP entries contain regular files; symlinks are dereferenced during upload. Executable bits are not preserved. Package a tar file yourself when permissions or symlinks matter.
+## Retention and access
 
-Multiple paths use their common search root. Hidden files are excluded by default. Empty directories are not retained. Absolute source paths are not stored in manifests.
+Default retention is 30 days. `0` selects that default; 1–90 are supported, capped by `GITHUB_RETENTION_DAYS`. External logical expiry is enforced by download. Physical lifecycle expiration uses N+1 days and runs asynchronously. Deleting the GitHub artifact does not immediately delete its S3 payload.
 
-Single-name/single-ID downloads extract directly to `path`. Multiple matches use logical-name directories unless `merge-multiple` is enabled. For collisions, downloads execute in ascending artifact-ID order: the highest ID wins deterministically. This may differ from the official action's parallel completion order.
+Object paths separate runs but do not create an authorization boundary for shared bucket credentials. Configure bucket access independently. Cross-repository GitHub access does not grant bucket access.
 
-External ZIP extraction rejects traversal and existing symlink targets. The native branch delegates download/extraction to `@actions/artifact`.
+## Manifest handoff and integrity
 
-## Retention
+External manifests use schema version 1 with kind `s3-artifact`; native descriptors use `github-artifact` with an artifact ID and optional digest. Both are compact JSON outputs. Upload still publishes external pointer artifacts when direct handoff is used.
 
-Default retention is 30 days, not the repository default. `0` selects that default. Supported values are 1–90, capped by `GITHUB_RETENTION_DAYS`. No unlimited retention is supported.
+Pass trusted upload outputs. Descriptors are unsigned and contain no credentials or endpoint. External downloads validate the configured bucket/prefix, expiry, size, and SHA-256. `digest-mismatch` controls hash failures; size and expiry failures always stop download.
 
-External logical expiry is enforced by this action. Objects get one extra day of physical retention to accommodate manifest publication after object creation. Lifecycle deletion is asynchronous. Direct bucket access bypasses the action's logical expiry. GitHub deletion does not trigger immediate external deletion.
+Direct external downloads make no GitHub artifact API calls. Native downloads delegate to the official SDK, which may query metadata internally. Empty input uses discovery, including when GitHub suppresses a job output because of secret filtering.
 
-## Metadata and integrity
+## Configuration migration
 
-GitHub UI, artifact APIs, and official download tools see the manifest archive. Its ID, URL, size, and digest refer to that archive. `payload-digest` refers to the actual external payload. `digest-mismatch` controls both manifest and payload SHA-256 comparisons; invalid manifests, expired artifacts, and size mismatches fail independently.
+Since v0.3, storage settings and credentials use `with` inputs. The actions neither use the default AWS credential chain nor export `AWS_*` variables. Temporary credentials can come from an authentication step's outputs. The standalone lifecycle CLI keeps its own CLI/environment interface.
 
-Manifests have a `kind` marker and `schemaVersion`. Credentials and endpoints are not read from manifests. The download environment must configure the matching bucket/prefix and endpoint. Cross-repository GitHub permission alone does not grant bucket access.
-
-## Supported environment
-
-The actions run on Node 24-capable GitHub Actions runners. Unit tests and bundle reproducibility are checked on Linux, Windows, and macOS. The Docker-based storage integration suite runs on Linux only. GitHub Enterprise Server is not supported in v0.1.0. Storage transport uses the shared S3 API subset, without AWS object tagging, ACLs, KMS parameters, or bucket-policy management.
-
-There is no client-side encryption. Use HTTPS, private buckets, provider-native encryption, and appropriately scoped credentials. AWS static and temporary credentials are passed through explicit `s3-access-key-id`, `s3-secret-access-key`, and optional `s3-session-token` inputs. No default credential chain or ambient storage configuration is used by the actions. An earlier OIDC step can expose temporary credentials as outputs without exporting them to the job environment.
-
-## Direct handoff
-
-The upload `manifest` output is a compact JSON object. S3/R2 uses the existing version-1 `s3-artifact` manifest unchanged. Native storage and fallback use a version-1 `github-artifact` descriptor with `name`, positive `artifactId`, and optional `sha256`.
-
-Download `manifest` bypasses listing; external descriptors also bypass native pointer download. It selects one artifact directly into `path`, regardless of `merge-multiple`. `skip-decompress` and `digest-mismatch` retain their meanings. Empty input uses discovery. Invalid nonempty input or simultaneous `name`, `artifact-ids`, or `pattern` fails. GitHub still enforces native artifact access/expiry; external expiry and storage/integrity checks are unchanged.
-
-Descriptors are not signed. Pass trusted upload outputs, and retain the normal storage credentials on the consumer. GitHub job-output secret filtering may suppress an output; an empty input uses discovery.
-
-Native direct handoff skips this action's discovery call, but the official artifact SDK may still query metadata internally when downloading by ID. External direct handoff makes no GitHub artifact API calls during download.
-
-## Storage input migration in v0.3
-
-All action storage configuration is now supplied through `with`. Move earlier AWS/S3 environment configuration to the corresponding `s3-*` inputs. A configured bucket requires both credential inputs. Credentials are masked and passed directly to the SDK client, never exported as `AWS_*` variables. SDK endpoint environment overrides are ignored. The standalone lifecycle CLI retains its own CLI/environment interface.
+Credentials are passed directly to the SDK client and masked in logs. Storage uses HTTPS and provider encryption; there is no client-side encryption.
