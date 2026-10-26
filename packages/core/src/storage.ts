@@ -6,6 +6,11 @@ import { NodeHttpHandler } from "@smithy/node-http-handler";
 import type { Readable } from "node:stream";
 
 export interface StorageConfig {
+  credentials: {
+    accessKeyId: string;
+    secretAccessKey: string;
+    sessionToken?: string;
+  };
   bucket: string;
   prefix: string;
   endpoint?: string;
@@ -15,6 +20,8 @@ export interface StorageConfig {
 export function createStorage(config: StorageConfig): S3Client {
   return new S3Client({
     region: config.region,
+    credentials: config.credentials,
+    ignoreConfiguredEndpointUrls: true,
     ...(config.endpoint ? { endpoint: config.endpoint } : {}),
     forcePathStyle: config.forcePathStyle,
     maxAttempts: 3,

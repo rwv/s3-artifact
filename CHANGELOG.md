@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0
+
+- Configure all action storage settings through `with`, including new `s3-access-key-id`, `s3-secret-access-key`, and optional `s3-session-token` inputs.
+- Pass masked credentials directly to each action's SDK client and ignore ambient endpoint overrides.
+- Breaking: remove action environment configuration and default credential-chain fallback. Migrate AWS/S3 environment settings to explicit inputs; standalone lifecycle CLI behavior is unchanged.
+- Verify environment isolation and SDK endpoint resolution without cloud calls.
+
 ## 0.2.0
 
 - Patch the transitive glob CLI dependency to 10.5.0 (GHSA-5j98-mcp5-4vw2).

@@ -16,20 +16,15 @@ Provide these repository configuration variables:
 
 - `S3_ARTIFACT_BUCKET`: bucket name.
 - `S3_ARTIFACT_ENDPOINT`: R2/S3-compatible endpoint; leave unset for AWS S3.
-- `AWS_REGION`: `auto` for R2, or the actual AWS region for S3.
+- `S3_ARTIFACT_REGION`: `auto` for R2, or the actual AWS region for S3.
 
-Provide storage credentials to both jobs through the standard AWS environment. For AWS, an earlier OIDC authentication step can populate these instead of long-lived secrets. For R2, configure the bucket credentials in GitHub Actions Secrets.
+Configure bucket credentials in GitHub Actions Secrets. Pass all storage settings through each action's `with` inputs; the action passes credentials directly to its own SDK client and masks them in logs. It does not export or inherit global AWS credentials.
 
 ```yaml
 name: Build
 on: push
 permissions:
   contents: read
-
-env:
-  S3_ARTIFACT_BUCKET: ${{ vars.S3_ARTIFACT_BUCKET }}
-  S3_ARTIFACT_ENDPOINT: ${{ vars.S3_ARTIFACT_ENDPOINT }}
-  AWS_REGION: ${{ vars.AWS_REGION }}
 
 jobs:
   build:
@@ -38,39 +33,45 @@ jobs:
       - run: |
           mkdir -p dist
           echo hello > dist/message.txt
-      - uses: rwv/s3-artifact/upload@v0.2.0
+      - uses: rwv/s3-artifact/upload@v0.3.0
         with:
           name: build
           path: dist/
           retention-days: 30
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          s3-bucket: ${{ vars.S3_ARTIFACT_BUCKET }}
+          s3-endpoint: ${{ vars.S3_ARTIFACT_ENDPOINT }}
+          s3-region: ${{ vars.S3_ARTIFACT_REGION }}
+          s3-access-key-id: ${{ secrets.S3_ARTIFACT_ACCESS_KEY_ID }}
+          s3-secret-access-key: ${{ secrets.S3_ARTIFACT_SECRET_ACCESS_KEY }}
 
   consume:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: rwv/s3-artifact/download@v0.2.0
+      - uses: rwv/s3-artifact/download@v0.3.0
         with:
           name: build
           path: dist/
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          s3-bucket: ${{ vars.S3_ARTIFACT_BUCKET }}
+          s3-endpoint: ${{ vars.S3_ARTIFACT_ENDPOINT }}
+          s3-region: ${{ vars.S3_ARTIFACT_REGION }}
+          s3-access-key-id: ${{ secrets.S3_ARTIFACT_ACCESS_KEY_ID }}
+          s3-secret-access-key: ${{ secrets.S3_ARTIFACT_SECRET_ACCESS_KEY }}
       - run: cat dist/message.txt
 ```
 
-You can also set storage inputs directly on either action:
+The same storage inputs are supported on both actions:
 
 ```yaml
 with:
   s3-bucket: my-artifacts
   s3-endpoint: https://ACCOUNT_ID.r2.cloudflarestorage.com
   s3-region: auto
+  s3-access-key-id: ${{ secrets.S3_ARTIFACT_ACCESS_KEY_ID }}
+  s3-secret-access-key: ${{ secrets.S3_ARTIFACT_SECRET_ACCESS_KEY }}
 ```
 
-For a jurisdiction-specific R2 bucket, use its corresponding endpoint. For AWS S3, omit `s3-endpoint` and use the bucket's region. Credentials are resolved by the AWS SDK's standard provider chain; credentials are never embedded in manifests.
+For a jurisdiction-specific R2 bucket, use its corresponding endpoint. For AWS S3, omit `s3-endpoint` and use the bucket's region. Credentials are never embedded in manifests. Temporary AWS credentials can be passed as `s3-access-key-id`, `s3-secret-access-key`, and `s3-session-token` from an authentication step's outputs. Configure that step not to export environment credentials if you want to keep the entire job's AWS environment unchanged.
 
 ## How it works
 
@@ -115,20 +116,27 @@ The GitHub UI and official download action download the **manifest**, not the ex
 
 ## Shared storage inputs
 
-| Input                 | Environment fallback / default                    |
-| --------------------- | ------------------------------------------------- |
-| `s3-bucket`           | `S3_ARTIFACT_BUCKET`; unset selects native upload |
-| `s3-endpoint`         | `S3_ARTIFACT_ENDPOINT`; unset uses AWS            |
-| `s3-region`           | `AWS_REGION`, then `auto`                         |
-| `s3-prefix`           | `S3_ARTIFACT_PREFIX`, then `s3-artifacts`         |
-| `s3-force-path-style` | `false`; useful for local S3 services             |
+| Input                  | Default / behavior                        |
+| ---------------------- | ----------------------------------------- |
+| `s3-bucket`            | Unset selects native upload               |
+| `s3-endpoint`          | Unset uses AWS S3                         |
+| `s3-region`            | `auto`; specify the bucket region for AWS |
+| `s3-prefix`            | `s3-artifacts`                            |
+| `s3-force-path-style`  | `false`; useful for local S3 services     |
+| `s3-access-key-id`     | Required with a bucket                    |
+| `s3-secret-access-key` | Required with a bucket                    |
+| `s3-session-token`     | Optional, for temporary AWS credentials   |
 
-Inputs take precedence over environment variables. Configure the same bucket, prefix, and endpoint on upload and download. Reading an external manifest without external storage configuration is an error; it cannot restore a payload that was never backed up to GitHub.
+Configure the same bucket, prefix, and endpoint on upload and download. The actions do not read `AWS_*` credentials, `AWS_REGION`, `AWS_ENDPOINT_URL*`, or `S3_ARTIFACT_*` configuration from the environment. They do not use the SDK's default credential provider chain or export credentials to other steps. GitHub internally transports `with` inputs as action-specific `INPUT_*` variables; no global `AWS_*` variables are written.
 
-To bypass external storage for one upload even when bucket variables are set:
+**Migration from v0.2:** move storage settings and credentials from `env` to these `with` inputs. A bucket with missing credentials is a configuration error, not a transfer failure. Without `s3-bucket`, auto upload still uses native storage. The standalone lifecycle CLI continues to use its own documented CLI/environment configuration.
+
+Reading an external manifest without external storage configuration is an error; it cannot restore a payload that was never backed up to GitHub.
+
+To bypass external storage for one upload even when storage inputs are set:
 
 ```yaml
-- uses: rwv/s3-artifact/upload@v0.2.0
+- uses: rwv/s3-artifact/upload@v0.3.0
   with:
     name: build
     path: dist/
@@ -146,6 +154,7 @@ Upload exposes:
 - `artifact-digest`: SHA-256 of the GitHub artifact.
 - `payload-digest`: SHA-256 of the actual payload.
 - `storage-backend`: `s3` or `github`.
+- `manifest`: compact JSON for direct handoff to the download action.
 
 Download exposes `download-path`, the absolute destination directory.
 
@@ -191,7 +200,7 @@ jobs:
       manifest: ${{ steps.upload.outputs.manifest }}
     steps:
       # Prepare your build and configure storage as in the examples above.
-      - uses: rwv/s3-artifact/upload@v0.2.0
+      - uses: rwv/s3-artifact/upload@v0.3.0
         id: upload
         with:
           name: build
@@ -202,7 +211,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Configure the same storage on this job when using S3/R2.
-      - uses: rwv/s3-artifact/download@v0.2.0
+      - uses: rwv/s3-artifact/download@v0.3.0
         with:
           manifest: ${{ needs.build.outputs.manifest }}
           path: dist/

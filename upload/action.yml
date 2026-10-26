@@ -32,14 +32,20 @@ inputs:
   fallback:
     description: "Use GitHub storage when no bucket is configured or external upload fails."
     default: "true"
+  s3-access-key-id:
+    description: "Storage access key ID. Required with s3-bucket; passed only to this action's client."
+  s3-secret-access-key:
+    description: "Storage secret access key. Required with s3-bucket."
+  s3-session-token:
+    description: "Optional session token for temporary storage credentials."
   s3-bucket:
-    description: "External bucket. Alternatively S3_ARTIFACT_BUCKET."
+    description: "External bucket; configured only through this input."
   s3-endpoint:
-    description: "S3-compatible endpoint. Alternatively S3_ARTIFACT_ENDPOINT."
+    description: "S3-compatible endpoint; omit for AWS S3."
   s3-region:
-    description: "AWS region; defaults to AWS_REGION or auto for R2."
+    description: "AWS region; defaults to auto for R2."
   s3-prefix:
-    description: "Object prefix. Alternatively S3_ARTIFACT_PREFIX; defaults to s3-artifacts."
+    description: "Object prefix; defaults to s3-artifacts."
   s3-force-path-style:
     description: "Use path-style S3 requests."
     default: "false"

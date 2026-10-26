@@ -15,11 +15,14 @@ const mocks = vi.hoisted(() => ({
   deletePayload: vi.fn(),
 }));
 vi.mock("@actions/core", () => ({
-  getInput: (key: string) => mocks.inputs[key] ?? "",
+  getInput: (key: string) =>
+    mocks.inputs[key] ??
+    (["s3-access-key-id", "s3-secret-access-key"].includes(key) ? "local-test-only" : ""),
   getBooleanInput: (key: string) => mocks.inputs[key] === "true",
   setOutput: (key: string, value: unknown) => {
     mocks.outputs[key] = value;
   },
+  setSecret: vi.fn(),
   info: vi.fn(),
   warning: vi.fn(),
   debug: vi.fn(),

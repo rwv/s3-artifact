@@ -42,7 +42,7 @@ Manifests have a `kind` marker and `schemaVersion`. Credentials and endpoints ar
 
 The actions run on Node 24-capable GitHub Actions runners. Unit tests and bundle reproducibility are checked on Linux, Windows, and macOS. The Docker-based storage integration suite runs on Linux only. GitHub Enterprise Server is not supported in v0.1.0. Storage transport uses the shared S3 API subset, without AWS object tagging, ACLs, KMS parameters, or bucket-policy management.
 
-There is no client-side encryption. Use HTTPS, private buckets, provider-native encryption, and appropriately scoped credentials. AWS static and temporary credentials are supported through the SDK provider chain, including session tokens supplied by an earlier OIDC step.
+There is no client-side encryption. Use HTTPS, private buckets, provider-native encryption, and appropriately scoped credentials. AWS static and temporary credentials are passed through explicit `s3-access-key-id`, `s3-secret-access-key`, and optional `s3-session-token` inputs. No default credential chain or ambient storage configuration is used by the actions. An earlier OIDC step can expose temporary credentials as outputs without exporting them to the job environment.
 
 ## Direct handoff
 
@@ -53,3 +53,7 @@ Download `manifest` bypasses listing; external descriptors also bypass native po
 Descriptors are not signed. Pass trusted upload outputs, and retain the normal storage credentials on the consumer. GitHub job-output secret filtering may suppress an output; an empty input uses discovery.
 
 Native direct handoff skips this action's discovery call, but the official artifact SDK may still query metadata internally when downloading by ID. External direct handoff makes no GitHub artifact API calls during download.
+
+## Storage input migration in v0.3
+
+All action storage configuration is now supplied through `with`. Move earlier AWS/S3 environment configuration to the corresponding `s3-*` inputs. A configured bucket requires both credential inputs. Credentials are masked and passed directly to the SDK client, never exported as `AWS_*` variables. SDK endpoint environment overrides are ignored. The standalone lifecycle CLI retains its own CLI/environment interface.
