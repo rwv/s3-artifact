@@ -1,0 +1,53 @@
+{
+  "name": "s3-artifact",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "lint": "oxlint --type-aware --deny-warnings",
+    "typecheck": "tsc --noEmit",
+    "knip": "knip",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "dist:check": "node scripts/check-dist.mjs",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm knip && pnpm test && pnpm test:storage && pnpm build && pnpm dist:check",
+    "fix": "oxfmt && oxlint --fix",
+    "lifecycle": "tsx scripts/lifecycle.ts",
+    "test:storage": "node scripts/test-storage.mjs"
+  },
+  "dependencies": {
+    "@actions/artifact": "^6.3.1",
+    "@actions/core": "^3.0.1",
+    "@actions/glob": "^0.7.0",
+    "@aws-sdk/client-s3": "^3.1156.0",
+    "@aws-sdk/lib-storage": "^3.1156.0",
+    "@smithy/node-http-handler": "^4.12.1",
+    "archiver": "^8.0.0",
+    "minimatch": "^10.2.6",
+    "unzipper": "^0.12.5"
+  },
+  "devDependencies": {
+    "@commitlint/config-conventional": "^21.2.4",
+    "@commitlint/lint": "^21.2.4",
+    "@types/archiver": "^8.0.0",
+    "@types/node": "^26.6.5",
+    "@types/unzipper": "^0.10.11",
+    "@vitest/coverage-v8": "^5.0.5",
+    "esbuild": "^0.28.2",
+    "knip": "^6.43.0",
+    "oxfmt": "^0.74.0",
+    "oxlint": "^1.89.0",
+    "oxlint-tsgolint": "^7.0.2005",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@10.28.2"
+}

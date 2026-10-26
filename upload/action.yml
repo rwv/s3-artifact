@@ -1,0 +1,59 @@
+name: "S3 Artifact Upload"
+description: "Upload artifacts to S3/R2 with GitHub manifest discovery and native fallback."
+author: rwv
+inputs:
+  name:
+    description: "Logical artifact name."
+    default: "artifact"
+  path:
+    description: "File, directory, or newline-separated glob patterns to upload."
+    required: true
+  if-no-files-found:
+    description: "Behavior when no files match: warn, error, ignore."
+    default: "warn"
+  retention-days:
+    description: "Logical retention: 1-90 days; 0 uses 30 days, capped by repository retention."
+    default: "0"
+  compression-level:
+    description: "ZIP compression level from 0 through 9."
+    default: "6"
+  overwrite:
+    description: "Delete existing artifacts with the same logical name before uploading."
+    default: "false"
+  include-hidden-files:
+    description: "Include hidden files in the upload."
+    default: "false"
+  archive:
+    description: "Archive files as ZIP; false requires one file and uses its basename."
+    default: "true"
+  fallback:
+    description: "Use GitHub storage when no bucket is configured or external upload fails."
+    default: "true"
+  s3-bucket:
+    description: "External bucket. Alternatively S3_ARTIFACT_BUCKET."
+  s3-endpoint:
+    description: "S3-compatible endpoint. Alternatively S3_ARTIFACT_ENDPOINT."
+  s3-region:
+    description: "AWS region; defaults to AWS_REGION or auto for R2."
+  s3-prefix:
+    description: "Object prefix. Alternatively S3_ARTIFACT_PREFIX; defaults to s3-artifacts."
+  s3-force-path-style:
+    description: "Use path-style S3 requests."
+    default: "false"
+outputs:
+  artifact-id:
+    description: "GitHub artifact ID; refers to the manifest in external mode."
+  artifact-url:
+    description: "GitHub artifact URL; downloads the manifest in external mode."
+  artifact-digest:
+    description: "SHA-256 of the GitHub artifact (manifest archive in external mode)."
+  payload-digest:
+    description: "SHA-256 of the payload."
+  storage-backend:
+    description: "Selected backend: s3 or github."
+runs:
+  using: node24
+  main: dist/index.js
+branding:
+  icon: package
+  color: orange

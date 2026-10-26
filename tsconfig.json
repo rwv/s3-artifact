@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": ["node"],
+    "allowImportingTsExtensions": true
+  },
+  "include": [
+    "packages/**/*.ts",
+    "upload/src/**/*.ts",
+    "download/src/**/*.ts",
+    "scripts/**/*.ts",
+    "tests/**/*.ts",
+    "vitest.config.ts",
+    "vitest.storage.config.ts"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "workspaces": {
+    ".": {
+      "entry": [
+        "upload/src/index.ts",
+        "download/src/index.ts",
+        "scripts/*.ts",
+        "scripts/*.mjs",
+        "vitest.storage.config.ts",
+        "tests/**/*.integration.ts"
+      ],
+      "project": [
+        "upload/src/**/*.ts",
+        "download/src/**/*.ts",
+        "scripts/**/*.{ts,mjs}",
+        "tests/**/*.integration.ts"
+      ]
+    },
+    "packages/core": {
+      "project": ["src/**/*.ts"]
+    }
+  }
+}

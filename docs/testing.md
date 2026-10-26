@@ -1,0 +1,12 @@
+# Testing
+
+Tests are intentionally local. No GitHub Secrets, live cloud resources, workflow artifact smoke tests, or 400 MB benchmark are required by CI.
+
+- `pnpm test`: manifest validation; logical-name selection across reruns and backend changes; explicit IDs; file discovery and ZIP roundtrip; traversal handling; upload fallback; failed manifest publication; mixed downloads; raw payloads; corruption detection.
+- `pnpm test:storage`: starts the pinned official RustFS container with a disposable data layer and loopback-only port, then exercises real AWS SDK multipart upload/download/delete and lifecycle apply/check with unrelated-rule preservation. Stops the container afterward. Public local test credentials are not production secrets.
+- `pnpm test:coverage`: V8 coverage report over core source, including unimported files. Coverage informs missing cases; no arbitrary percentage gate is imposed in this initial release.
+- `pnpm check`: format, lint, strict types, Knip, tests, local RustFS, build, and committed-bundle consistency.
+
+Local RustFS validates the shared protocol behavior. It does not establish provider-specific AWS/R2 compatibility, GitHub backend behavior, or throughput from Ubicloud. Those remain explicit release limitations rather than simulated claims.
+
+Routine CI uses Linux/Node 24 only. Add a platform matrix when a concrete platform-specific requirement warrants it. Retry transport operations within the SDK; do not blanket-retry failed tests.
