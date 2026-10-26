@@ -2,6 +2,7 @@
 
 ## 0.2.0
 
+- Patch the transitive glob CLI dependency to 10.5.0 (GHSA-5j98-mcp5-4vw2).
 - Add compact upload `manifest` output and optional download `manifest` input for direct job-to-job handoff.
 - Skip discovery for both backends and native pointer download for S3/R2 while preserving integrity and expiry checks.
 - Emit native descriptors for explicit GitHub storage and upload fallback; continue publishing external pointer artifacts.

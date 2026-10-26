@@ -2,3 +2,6 @@ packages:
   - packages/*
 # Keep virtual-store paths identical on Linux, macOS, and Windows.
 virtualStoreDirMaxLength: 60
+# Patch the transitive glob CLI advisory GHSA-5j98-mcp5-4vw2.
+overrides:
+  "glob@>=10.2.0 <10.5.0": "10.5.0"
