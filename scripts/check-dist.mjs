@@ -1,7 +1,15 @@
 import { execFileSync } from "node:child_process";
 const diff = execFileSync(
   "git",
-  ["status", "--porcelain", "--untracked-files=all", "--", "upload/dist", "download/dist"],
+  [
+    "status",
+    "--porcelain",
+    "--untracked-files=all",
+    "--",
+    "upload/dist",
+    "download/dist",
+    "THIRD_PARTY_NOTICES.txt",
+  ],
   { encoding: "utf8" },
 );
 if (diff.trim()) {
