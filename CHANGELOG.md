@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.0
+
+First stable release, with the same runtime behavior as v0.3.1.
+
+- Stable upload/download inputs, outputs, and version-1 manifests.
+- S3/R2 storage, native GitHub fallback, and direct manifest handoff between jobs.
+- Explicit storage inputs, SHA-256 verification, bounded download retries, and 1–90 day retention.
+- Linux, Windows, and macOS quality gates with unit and local RustFS integration tests.
+- Use `rwv/s3-artifact/upload@v1` and `rwv/s3-artifact/download@v1`, or pin `v1.0.0`.
+
 ## 0.3.1
 
 - Ignore S3 configuration when downloading only native GitHub artifacts.

@@ -27,7 +27,7 @@ jobs:
       - run: |
           mkdir -p dist
           echo hello > dist/message.txt
-      - uses: rwv/s3-artifact/upload@v0.3.1
+      - uses: rwv/s3-artifact/upload@v1
         id: upload
         with:
           name: build
@@ -42,7 +42,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: rwv/s3-artifact/download@v0.3.1
+      - uses: rwv/s3-artifact/download@v1
         with:
           manifest: ${{ needs.build.outputs.manifest }}
           path: dist/
@@ -57,6 +57,8 @@ jobs:
 For AWS S3, omit `s3-endpoint` and set `s3-region` to the bucket's region. Temporary credentials also accept `s3-session-token`. All storage configuration goes in `with`; the actions do not inherit or export AWS credentials.
 
 To use discovery instead, replace the download's `manifest` input with `name: build`. To force native GitHub storage, set `storage: github` on upload.
+
+Pin `@v1.0.0` or a commit SHA if you prefer a fixed release.
 
 ## Upload inputs
 
