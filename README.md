@@ -164,4 +164,4 @@ The two action directories include committed bundles. Consumers do not install N
 
 ## License
 
-[MIT](LICENSE). Bundles preserve dependency license notices alongside the generated JavaScript.
+[MIT](LICENSE). See [third-party notices](THIRD_PARTY_NOTICES.txt) for production dependency license texts. Bundles also retain linked license comments.

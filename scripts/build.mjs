@@ -17,3 +17,4 @@ await Promise.all(
     }),
   ),
 );
+await import("./notices.mjs");

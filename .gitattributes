@@ -1,3 +1,4 @@
 * text=auto eol=lf
 upload/dist/* linguist-generated=true
 download/dist/* linguist-generated=true
+THIRD_PARTY_NOTICES.txt linguist-generated=true

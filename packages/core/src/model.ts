@@ -27,10 +27,10 @@ export function validateName(name: string): void {
     // eslint-disable-next-line no-control-regex -- GitHub artifact names reject control characters.
     /["<>|:*?\\/\x00-\x1f]/u.test(name) ||
     name.endsWith(SUFFIX) ||
-    name.length + SUFFIX.length > 255
+    Buffer.byteLength(`${name}${SUFFIX}.manifest.json`, "utf8") > 255
   ) {
     throw new Error(
-      "Artifact name must be a safe filename, fit within 255 characters including the reserved .s3-artifact suffix, and not end with that suffix.",
+      "Artifact name must be a safe filename, fit within 255 UTF-8 bytes including .s3-artifact.manifest.json, and not end with that suffix.",
     );
   }
 }

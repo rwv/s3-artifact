@@ -4,13 +4,15 @@ The reference interfaces are upload-artifact v7 and download-artifact v8. This p
 
 ## Names and discovery
 
-Logical `build` maps to native `build` or external-pointer `build.s3-artifact`. The suffix is reserved. Names cannot contain filesystem path separators, GitHub-invalid filename characters, or exceed 255 characters including the suffix. Pattern matching occurs after removing the suffix.
+Logical `build` maps to native `build` or external-pointer `build.s3-artifact`. The suffix is reserved. Names cannot contain filesystem path separators, GitHub-invalid filename characters, or exceed 255 UTF-8 bytes including the full `.s3-artifact.manifest.json` filename suffix. Pattern matching occurs after removing the suffix.
 
 GitHub's artifact client determines the visible run scope. We do not query unrelated runs or require matching the current attempt. Reruns keep the run ID and get distinct payload UUIDs. Explicit artifact IDs select exact artifacts; name/all queries deduplicate to the highest artifact ID. Re-run behavior is covered at the selection layer, not by live GitHub smoke tests.
 
 Use a unique logical name per parallel producer (for example, include a matrix dimension). Concurrent uploads of the same logical name are unsupported, particularly when one producer falls back to GitHub and another publishes an external pointer. Prefixes organize storage; shared bucket credentials do not enforce per-run authorization.
 
 ## Overwrite
+
+The wrapper checks visible logical names before either backend is used. If a previous attempt remains visible under the same logical name, uploading again requires `overwrite: true`. This is a deliberate v0.1.0 difference from backend-specific rerun name handling; downloading a previous attempt does not require an override.
 
 `overwrite: true` deletes the latest visible artifacts for both physical names before uploading. A failed replacement may leave no current artifact, like the official delete-then-upload behavior. Older rerun artifacts can still exist and be selected by ID. Old external payloads expire through lifecycle; overwrite does not eagerly scan or delete storage objects.
 

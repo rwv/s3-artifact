@@ -37,6 +37,7 @@ it("reserves the manifest suffix and rejects path-like names", () => {
   for (const name of ["../build", "build.s3-artifact", "a\\b", ""])
     expect(() => validateName(name)).toThrow();
   expect(() => validateName("build-linux")).not.toThrow();
+  expect(() => validateName("界".repeat(100))).toThrow();
 });
 it("validates protocol version, identity, digest, and filenames", () => {
   const m: Manifest = {
