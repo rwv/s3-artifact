@@ -155351,6 +155351,16 @@ async function run() {
   async function nativeUpload() {
     const result = await artifact_default.uploadArtifact(name, files, root5, options);
     report(result, "github", result.digest ?? "");
+    setOutput(
+      "manifest",
+      JSON.stringify({
+        kind: "github-artifact",
+        schemaVersion: 1,
+        name,
+        artifactId: result.id,
+        ...result.digest ? { sha256: result.digest } : {}
+      })
+    );
   }
   function report(result, backend, payloadDigest) {
     if (!result.id) throw new Error("GitHub did not return an artifact ID.");
@@ -155433,6 +155443,7 @@ async function run() {
       throw error3;
     }
     report(result, "s3", sha256);
+    setOutput("manifest", JSON.stringify(manifest));
     info(`Payload size: ${size} bytes. GitHub stores the manifest only.`);
   } finally {
     client2.destroy();

@@ -38,7 +38,7 @@ jobs:
       - run: |
           mkdir -p dist
           echo hello > dist/message.txt
-      - uses: rwv/s3-artifact/upload@v0.1.0
+      - uses: rwv/s3-artifact/upload@v0.2.0
         with:
           name: build
           path: dist/
@@ -51,7 +51,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: rwv/s3-artifact/download@v0.1.0
+      - uses: rwv/s3-artifact/download@v0.2.0
         with:
           name: build
           path: dist/
@@ -128,7 +128,7 @@ Inputs take precedence over environment variables. Configure the same bucket, pr
 To bypass external storage for one upload even when bucket variables are set:
 
 ```yaml
-- uses: rwv/s3-artifact/upload@v0.1.0
+- uses: rwv/s3-artifact/upload@v0.2.0
   with:
     name: build
     path: dist/
@@ -178,3 +178,38 @@ The two action directories include committed bundles. Consumers do not install N
 ## License
 
 [MIT](LICENSE). See [third-party notices](THIRD_PARTY_NOTICES.txt) for production dependency license texts. Bundles also retain linked license comments.
+
+## Direct manifest handoff
+
+Pass the compact `manifest` output between jobs to avoid GitHub artifact discovery and, for S3/R2, downloading the manifest artifact. Upload still publishes the native manifest artifact for UI access and later discovery.
+
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      manifest: ${{ steps.upload.outputs.manifest }}
+    steps:
+      # Prepare your build and configure storage as in the examples above.
+      - uses: rwv/s3-artifact/upload@v0.2.0
+        id: upload
+        with:
+          name: build
+          path: dist/
+
+  consume:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      # Configure the same storage on this job when using S3/R2.
+      - uses: rwv/s3-artifact/download@v0.2.0
+        with:
+          manifest: ${{ needs.build.outputs.manifest }}
+          path: dist/
+```
+
+Native storage and upload fallback emit a descriptor containing the native artifact ID and available digest. Download uses that ID directly. A nonempty `manifest` is mutually exclusive with `name`, `artifact-ids`, and `pattern`; it represents one artifact extracted directly into `path`. Empty input retains the usual discovery flow. Invalid nonempty input fails without discovery fallback.
+
+The descriptor contains no credentials or endpoint. External downloads still validate expiry, bucket/prefix, size, and SHA-256. Treat the descriptor as trusted workflow data: checksums detect corruption, not malicious modification of both payload and descriptor. Cross-run native downloads still require the appropriate `github-token`, `repository`, and `run-id` inputs.
+
+Native direct handoff skips this action's discovery call, but the official artifact SDK may still query metadata internally when downloading by ID. External direct handoff makes no GitHub artifact API calls during download.

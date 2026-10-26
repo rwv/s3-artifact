@@ -2,6 +2,8 @@ name: "S3 Artifact Download"
 description: "Download S3/R2 artifacts and native GitHub artifacts using compatible inputs."
 author: rwv
 inputs:
+  manifest:
+    description: "Compact JSON from upload outputs.manifest; skips artifact discovery. Mutually exclusive with name, artifact-ids, and pattern."
   name:
     description: "Logical artifact name to download; omit to select all artifacts."
   artifact-ids:

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0
+
+- Add compact upload `manifest` output and optional download `manifest` input for direct job-to-job handoff.
+- Skip discovery for both backends and native pointer download for S3/R2 while preserving integrity and expiry checks.
+- Emit native descriptors for explicit GitHub storage and upload fallback; continue publishing external pointer artifacts.
+- Validate the feature with local unit tests and Linux, Windows, and macOS quality gates.
+
 ## 0.1.0
 
 Initial prerelease.

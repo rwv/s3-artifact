@@ -186,3 +186,61 @@ it("explicit S3 selection requires a configured bucket", async () => {
   await expect(upload()).rejects.toThrow("requires a configured bucket");
   expect(mocks.upload).not.toHaveBeenCalled();
 });
+
+it.each(["s3", "github", "fallback"])(
+  "downloads a %s handoff without discovery",
+  async (backend) => {
+    uploadInputs();
+    if (backend === "github") mocks.inputs.storage = "github";
+    if (backend === "fallback") mocks.put.mockRejectedValueOnce(new Error("unavailable"));
+    await upload();
+    const manifest = String(mocks.outputs.manifest);
+    mocks.list.mockClear();
+    mocks.inputs = { manifest, path: path.join(directory, "direct"), "s3-bucket": "ci" };
+    await download();
+    expect(mocks.list).not.toHaveBeenCalled();
+    expect(mocks.download).toHaveBeenCalledTimes(backend === "s3" ? 0 : 1);
+    expect(await readFile(path.join(directory, "direct", "nested", "file.txt"), "utf8")).toBe(
+      "hello",
+    );
+  },
+);
+it("rejects invalid or conflicting handoffs without discovery", async () => {
+  for (const manifest of [
+    "not-json",
+    "null",
+    '{"kind":"github-artifact","schemaVersion":2}',
+    '{"kind":"github-artifact","schemaVersion":1,"name":"build","artifactId":0}',
+  ]) {
+    mocks.inputs = { manifest };
+    await expect(download()).rejects.toThrow();
+  }
+  uploadInputs();
+  await upload();
+  mocks.list.mockClear();
+  for (const key of ["name", "artifact-ids", "pattern"]) {
+    mocks.inputs = { manifest: String(mocks.outputs.manifest), [key]: "build" };
+    await expect(download()).rejects.toThrow("mutually exclusive");
+  }
+  expect(mocks.list).not.toHaveBeenCalled();
+  expect(mocks.download).not.toHaveBeenCalled();
+});
+it("enforces expiry, storage scope, and payload integrity for direct handoffs", async () => {
+  uploadInputs();
+  await upload();
+  const original = JSON.parse(String(mocks.outputs.manifest));
+  for (const [patch, error] of [
+    [{ expiresAt: "2000-01-01T00:00:00Z" }, "expired"],
+    [{ bucket: "other" }, "bucket/prefix"],
+    [{ size: original.size + 1 }, "size mismatch"],
+    [{ sha256: "0".repeat(64) }, "SHA-256 mismatch"],
+  ] as const) {
+    mocks.inputs = {
+      manifest: JSON.stringify({ ...original, ...patch }),
+      path: path.join(directory, "out"),
+      "s3-bucket": "ci",
+    };
+    await expect(download()).rejects.toThrow(error);
+  }
+  expect(mocks.download).not.toHaveBeenCalled();
+});
